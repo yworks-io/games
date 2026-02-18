@@ -8,47 +8,60 @@
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     background: #f0d9b5;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; min-height: 100dvh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     touch-action: manipulation; user-select: none;
+    padding: 10px;
   }
-  h1 { font-size: 24px; color: #5d4037; margin-bottom: 4px; }
-  #status {
-    font-size: 18px; color: #4e342e; margin-bottom: 6px; min-height: 26px;
-    font-weight: 600;
+  #wrapper {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
   }
+  #info { text-align: center; }
+  #info h1 { font-size: 22px; color: #5d4037; }
+  #status { font-size: 17px; color: #4e342e; font-weight: 600; margin-top: 2px; }
   #board-container {
-    position: relative;
-    background: #dcb468;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    padding: 8px;
+    background: #dcb468; border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3); padding: 6px;
+    flex-shrink: 0;
   }
   canvas { display: block; }
-  #controls {
-    margin-top: 10px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
-  }
+  #controls { display: flex; gap: 10px; }
   button {
-    padding: 10px 24px; font-size: 16px; border: none; border-radius: 8px;
+    padding: 10px 22px; font-size: 15px; border: none; border-radius: 8px;
     cursor: pointer; font-weight: 600; transition: all 0.2s;
   }
   #undoBtn { background: #8d6e63; color: white; }
   #undoBtn:hover { background: #6d4c41; }
   #restartBtn { background: #ef6c00; color: white; }
   #restartBtn:hover { background: #e65100; }
-  .winner-line { animation: pulse 0.8s ease-in-out infinite alternate; }
-  @keyframes pulse { from { opacity: 0.7; } to { opacity: 1; } }
+  /* landscape */
+  @media (orientation: landscape) {
+    #wrapper { flex-direction: row; gap: 20px; }
+    #side { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+    #info h1 { font-size: 24px; }
+    #status { font-size: 18px; }
+    #controls { flex-direction: column; }
+    button { width: 100%; }
+  }
 </style>
 </head>
 <body>
-<h1>五子棋</h1>
-<div id="status">⚫ 黑棋先行</div>
-<div id="board-container">
-  <canvas id="board"></canvas>
-</div>
-<div id="controls">
-  <button id="undoBtn" onclick="undo()">悔棋</button>
-  <button id="restartBtn" onclick="restart()">重新开始</button>
+
+<div id="wrapper">
+  <div id="side">
+    <div id="info">
+      <h1>五子棋</h1>
+      <div id="status">⚫ 黑棋先行</div>
+    </div>
+    <div id="controls">
+      <button id="undoBtn" onclick="undo()">悔棋</button>
+      <button id="restartBtn" onclick="restart()">重新开始</button>
+    </div>
+  </div>
+  <div id="board-container">
+    <canvas id="board"></canvas>
+  </div>
 </div>
 
 <script>
@@ -63,7 +76,6 @@ function ensureAudio() {
 function playPlace() {
   ensureAudio();
   const ctx = audioCtx;
-  // short woody "tock" sound
   const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
   const data = buf.getChannelData(0);
   for (let i = 0; i < data.length; i++) {
@@ -84,7 +96,6 @@ function playPlace() {
 }
 
 function playCapture() {
-  // slightly heavier sound for undo (reverse feel)
   ensureAudio();
   const ctx = audioCtx;
   const buf = ctx.createBuffer(1, ctx.sampleRate * 0.06, ctx.sampleRate);
@@ -105,7 +116,7 @@ function playCapture() {
 function playWin() {
   ensureAudio();
   const ctx = audioCtx;
-  const notes = [523, 659, 784, 1047]; // C5 E5 G5 C6
+  const notes = [523, 659, 784, 1047];
   notes.forEach((freq, i) => {
     const osc = ctx.createOscillator();
     osc.type = 'triangle';
@@ -124,7 +135,7 @@ function playWin() {
 function playDraw() {
   ensureAudio();
   const ctx = audioCtx;
-  const notes = [440, 415]; // A4 Ab4 descending
+  const notes = [440, 415];
   notes.forEach((freq, i) => {
     const osc = ctx.createOscillator();
     osc.type = 'sine';
@@ -149,15 +160,22 @@ const status = document.getElementById('status');
 let cellSize, padding, boardPx;
 let grid = [];
 let history = [];
-let currentPlayer = 1; // 1=black, 2=white
+let currentPlayer = 1;
 let gameOver = false;
 let winCells = [];
 
+function isLandscape() { return window.innerWidth > window.innerHeight; }
+
 function initSize() {
-  const maxW = window.innerWidth - 20;
-  const maxH = window.innerHeight - 130;
-  const sz = Math.min(maxW, maxH);
-  cellSize = Math.floor(sz / (SIZE + 1));
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  let maxSz;
+  if (isLandscape()) {
+    maxSz = vh - 32;
+  } else {
+    maxSz = Math.min(vw - 24, vh - 110);
+  }
+  cellSize = Math.floor(maxSz / (SIZE + 1));
   padding = cellSize;
   boardPx = cellSize * (SIZE - 1) + padding * 2;
   canvas.width = boardPx;
@@ -177,11 +195,9 @@ function initGrid() {
 
 function drawBoard() {
   ctx.clearRect(0, 0, boardPx, boardPx);
-  // background
   ctx.fillStyle = '#dcb468';
   ctx.fillRect(0, 0, boardPx, boardPx);
 
-  // grid lines
   ctx.strokeStyle = '#5d4037';
   ctx.lineWidth = 1;
   for (let i = 0; i < SIZE; i++) {
@@ -196,7 +212,6 @@ function drawBoard() {
     ctx.stroke();
   }
 
-  // star points
   const stars = SIZE === 15 ? [[3,3],[3,11],[7,7],[11,3],[11,11]] : [];
   ctx.fillStyle = '#5d4037';
   stars.forEach(([r, c]) => {
@@ -205,16 +220,12 @@ function drawBoard() {
     ctx.fill();
   });
 
-  // stones
   for (let r = 0; r < SIZE; r++) {
     for (let c = 0; c < SIZE; c++) {
-      if (grid[r][c] !== 0) {
-        drawStone(r, c, grid[r][c]);
-      }
+      if (grid[r][c] !== 0) drawStone(r, c, grid[r][c]);
     }
   }
 
-  // highlight last move
   if (history.length > 0) {
     const [lr, lc] = history[history.length - 1];
     const x = padding + lc * cellSize;
@@ -226,7 +237,6 @@ function drawBoard() {
     ctx.stroke();
   }
 
-  // winner line
   if (winCells.length > 0) {
     const x1 = padding + winCells[0][1] * cellSize;
     const y1 = padding + winCells[0][0] * cellSize;
@@ -300,9 +310,7 @@ function checkWin(r, c, player) {
         else cells.push([nr, nc]);
       }
     }
-    if (cells.length >= 5) {
-      return cells.slice(0, 5);
-    }
+    if (cells.length >= 5) return cells.slice(0, 5);
   }
   return null;
 }
@@ -339,10 +347,7 @@ function handleClick(e) {
 function undo() {
   if (history.length === 0) return;
   playCapture();
-  if (gameOver) {
-    gameOver = false;
-    winCells = [];
-  }
+  if (gameOver) { gameOver = false; winCells = []; }
   const [r, c] = history.pop();
   grid[r][c] = 0;
   currentPlayer = currentPlayer === 1 ? 2 : 1;
@@ -350,20 +355,11 @@ function undo() {
   drawBoard();
 }
 
-function restart() {
-  initGrid();
-  drawBoard();
-}
+function restart() { initGrid(); drawBoard(); }
 
 let touchHandled = false;
-canvas.addEventListener('touchend', (e) => {
-  touchHandled = true;
-  handleClick(e);
-});
-canvas.addEventListener('click', (e) => {
-  if (touchHandled) { touchHandled = false; return; }
-  handleClick(e);
-});
+canvas.addEventListener('touchend', (e) => { touchHandled = true; handleClick(e); });
+canvas.addEventListener('click', (e) => { if (touchHandled) { touchHandled = false; return; } handleClick(e); });
 
 window.addEventListener('resize', () => { initSize(); drawBoard(); });
 
