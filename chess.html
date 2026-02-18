@@ -25,7 +25,18 @@
     min-height: 28px; padding: 2px 4px;
   }
   .captured-row span { font-size: 22px; }
+  .captured-row .white-piece { color: #ffffff; text-shadow: 0 0 2px rgba(0,0,0,0.5); }
+  .captured-row .black-piece { color: #1a1a1a; }
   .captured-row.black-captured { transform: rotate(180deg); }
+  #captured-side {
+    display: none;
+    flex-direction: column; justify-content: space-between;
+    padding: 4px 0;
+  }
+  #captured-side .captured-row {
+    flex-direction: column; align-items: center;
+    min-height: auto; padding: 4px 2px;
+  }
   #board-container {
     border-radius: 6px; overflow: hidden;
     box-shadow: 0 4px 24px rgba(0,0,0,0.5);
@@ -48,6 +59,9 @@
     #status { font-size: 18px; }
     #controls { flex-direction: column; }
     button { width: 100%; }
+    #board-area { flex-direction: row; align-items: stretch; }
+    #board-area > .captured-row { display: none; }
+    #captured-side { display: flex; }
   }
 
   /* Promotion modal */
@@ -90,6 +104,10 @@
       <canvas id="board"></canvas>
     </div>
     <div id="capturedWhite" class="captured-row"></div>
+    <div id="captured-side">
+      <div id="capturedBlackSide" class="captured-row black-captured"></div>
+      <div id="capturedWhiteSide" class="captured-row"></div>
+    </div>
   </div>
 </div>
 
@@ -292,21 +310,24 @@ function initSize() {
 const PIECE_VALUE_ORDER = { Q: 0, R: 1, B: 2, N: 3, P: 4 };
 
 function renderCaptured() {
-  const whiteEl = document.getElementById('capturedWhite');
-  const blackEl = document.getElementById('capturedBlack');
-
   const toHtml = (pieces) => {
     const sorted = [...pieces].sort((a, b) => PIECE_VALUE_ORDER[a.type] - PIECE_VALUE_ORDER[b.type]);
     return sorted.map(p => {
       const glyph = GLYPHS[p.color + p.type];
-      return `<span>${glyph}</span>`;
+      const cls = p.color === 'w' ? 'white-piece' : 'black-piece';
+      return `<span class="${cls}">${glyph}</span>`;
     }).join('');
   };
 
-  // white player's trophies: black pieces they captured (shown at bottom)
-  whiteEl.innerHTML = toHtml(capturedByWhite);
-  // black player's trophies: white pieces they captured (shown at top, rotated 180°)
-  blackEl.innerHTML = toHtml(capturedByBlack);
+  const whiteHtml = toHtml(capturedByWhite);
+  const blackHtml = toHtml(capturedByBlack);
+
+  // portrait: top/bottom rows
+  document.getElementById('capturedWhite').innerHTML = whiteHtml;
+  document.getElementById('capturedBlack').innerHTML = blackHtml;
+  // landscape: side column
+  document.getElementById('capturedWhiteSide').innerHTML = whiteHtml;
+  document.getElementById('capturedBlackSide').innerHTML = blackHtml;
 }
 
 function initBoard() {

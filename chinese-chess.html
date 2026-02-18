@@ -31,6 +31,15 @@
   .captured-row.black-captured { transform: rotate(180deg); }
   .captured-row .red-piece { color: #c62828; }
   .captured-row .black-piece { color: #1a1a1a; }
+  #captured-side {
+    display: none;
+    flex-direction: column; justify-content: space-between;
+    padding: 4px 0;
+  }
+  #captured-side .captured-row {
+    flex-direction: column; align-items: center;
+    min-height: auto; padding: 4px 2px;
+  }
   #board-container {
     background: #dcb468; border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3); padding: 6px;
@@ -53,6 +62,9 @@
     #status { font-size: 18px; }
     #controls { flex-direction: column; }
     button { width: 100%; }
+    #board-area { flex-direction: row; align-items: stretch; }
+    #board-area > .captured-row { display: none; }
+    #captured-side { display: flex; }
   }
 </style>
 </head>
@@ -75,6 +87,10 @@
       <canvas id="board"></canvas>
     </div>
     <div id="capturedRed" class="captured-row"></div>
+    <div id="captured-side">
+      <div id="capturedBlackSide" class="captured-row black-captured"></div>
+      <div id="capturedRedSide" class="captured-row"></div>
+    </div>
   </div>
 </div>
 
@@ -252,10 +268,7 @@ function initBoard() {
 const PIECE_ORDER = { K: 0, R: 1, H: 2, C: 3, E: 4, A: 5, P: 6 };
 
 function renderCaptured() {
-  const redEl = document.getElementById('capturedRed');
-  const blackEl = document.getElementById('capturedBlack');
-
-  const toHtml = (pieces, colorClass) => {
+  const toHtml = (pieces) => {
     const sorted = [...pieces].sort((a, b) => PIECE_ORDER[type(a)] - PIECE_ORDER[type(b)]);
     return sorted.map(p => {
       const s = side(p);
@@ -264,10 +277,15 @@ function renderCaptured() {
     }).join('');
   };
 
-  // red player's trophy: black pieces they captured (shown at bottom, normal orientation)
-  redEl.innerHTML = toHtml(capturedByRed, 'black-piece');
-  // black player's trophy: red pieces they captured (shown at top, rotated 180°)
-  blackEl.innerHTML = toHtml(capturedByBlack, 'red-piece');
+  const redHtml = toHtml(capturedByRed);
+  const blackHtml = toHtml(capturedByBlack);
+
+  // portrait: top/bottom rows
+  document.getElementById('capturedRed').innerHTML = redHtml;
+  document.getElementById('capturedBlack').innerHTML = blackHtml;
+  // landscape: side column
+  document.getElementById('capturedRedSide').innerHTML = redHtml;
+  document.getElementById('capturedBlackSide').innerHTML = blackHtml;
 }
 
 function side(piece) { return piece ? (piece[0] === 'r' ? 'red' : 'black') : null; }
