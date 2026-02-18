@@ -715,8 +715,15 @@ function restart() {
   drawBoard();
 }
 
-canvas.addEventListener('click', handleClick);
-canvas.addEventListener('touchend', handleClick);
+let touchHandled = false;
+canvas.addEventListener('touchend', (e) => {
+  touchHandled = true;
+  handleClick(e);
+});
+canvas.addEventListener('click', (e) => {
+  if (touchHandled) { touchHandled = false; return; }
+  handleClick(e);
+});
 window.addEventListener('resize', () => { initSize(); drawBoard(); });
 
 initSize();

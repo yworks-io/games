@@ -271,9 +271,9 @@ function getPos(e) {
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
   let clientX, clientY;
-  if (e.touches) {
-    clientX = e.touches[0].clientX;
-    clientY = e.touches[0].clientY;
+  if (e.changedTouches && e.changedTouches.length > 0) {
+    clientX = e.changedTouches[0].clientX;
+    clientY = e.changedTouches[0].clientY;
   } else {
     clientX = e.clientX;
     clientY = e.clientY;
@@ -355,8 +355,15 @@ function restart() {
   drawBoard();
 }
 
-canvas.addEventListener('click', handleClick);
-canvas.addEventListener('touchend', handleClick);
+let touchHandled = false;
+canvas.addEventListener('touchend', (e) => {
+  touchHandled = true;
+  handleClick(e);
+});
+canvas.addEventListener('click', (e) => {
+  if (touchHandled) { touchHandled = false; return; }
+  handleClick(e);
+});
 
 window.addEventListener('resize', () => { initSize(); drawBoard(); });
 
