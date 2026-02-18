@@ -12,9 +12,9 @@
     min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     touch-action: manipulation; user-select: none;
   }
-  h1 { font-size: 28px; color: #5d4037; margin-bottom: 8px; }
+  h1 { font-size: 24px; color: #5d4037; margin-bottom: 4px; }
   #status {
-    font-size: 20px; color: #4e342e; margin-bottom: 12px; min-height: 30px;
+    font-size: 18px; color: #4e342e; margin-bottom: 6px; min-height: 26px;
     font-weight: 600;
   }
   #board-container {
@@ -22,14 +22,14 @@
     background: #dcb468;
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    padding: 20px;
+    padding: 8px;
   }
   canvas { display: block; }
   #controls {
-    margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+    margin-top: 10px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
   }
   button {
-    padding: 12px 28px; font-size: 18px; border: none; border-radius: 8px;
+    padding: 10px 24px; font-size: 16px; border: none; border-radius: 8px;
     cursor: pointer; font-weight: 600; transition: all 0.2s;
   }
   #undoBtn { background: #8d6e63; color: white; }
@@ -154,8 +154,8 @@ let gameOver = false;
 let winCells = [];
 
 function initSize() {
-  const maxW = Math.min(window.innerWidth - 40, 560);
-  const maxH = window.innerHeight - 200;
+  const maxW = window.innerWidth - 20;
+  const maxH = window.innerHeight - 130;
   const sz = Math.min(maxW, maxH);
   cellSize = Math.floor(sz / (SIZE + 1));
   padding = cellSize;

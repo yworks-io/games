@@ -12,16 +12,16 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     touch-action: manipulation; user-select: none;
   }
-  h1 { font-size: 28px; color: #e8e0d5; margin-bottom: 6px; }
-  #status { font-size: 20px; color: #c8bfb3; margin-bottom: 10px; min-height: 30px; font-weight: 600; }
+  h1 { font-size: 24px; color: #e8e0d5; margin-bottom: 4px; }
+  #status { font-size: 18px; color: #c8bfb3; margin-bottom: 6px; min-height: 26px; font-weight: 600; }
   #board-container {
     position: relative; border-radius: 6px; overflow: hidden;
     box-shadow: 0 4px 24px rgba(0,0,0,0.5);
   }
   canvas { display: block; }
-  #controls { margin-top: 14px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  #controls { margin-top: 10px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   button {
-    padding: 12px 28px; font-size: 18px; border: none; border-radius: 8px;
+    padding: 10px 24px; font-size: 16px; border: none; border-radius: 8px;
     cursor: pointer; font-weight: 600; transition: all 0.2s;
   }
   #undoBtn { background: #7b6f63; color: white; }
@@ -236,8 +236,8 @@ const INIT_BOARD = [
 function cloneBoard(b) { return b.map(row => row.map(p => p ? {...p} : null)); }
 
 function initSize() {
-  const maxW = Math.min(window.innerWidth - 20, 520);
-  const maxH = window.innerHeight - 180;
+  const maxW = window.innerWidth - 16;
+  const maxH = window.innerHeight - 120;
   cellSz = Math.floor(Math.min(maxW, maxH) / 8);
   boardPx = cellSz * 8;
   canvas.width = boardPx;
