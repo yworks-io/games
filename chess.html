@@ -19,6 +19,13 @@
   #info { text-align: center; }
   #info h1 { font-size: 22px; color: #e8e0d5; }
   #status { font-size: 17px; color: #c8bfb3; font-weight: 600; margin-top: 2px; }
+  #board-area { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .captured-row {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 1px;
+    min-height: 28px; padding: 2px 4px;
+  }
+  .captured-row span { font-size: 22px; }
+  .captured-row.black-captured { transform: rotate(180deg); }
   #board-container {
     border-radius: 6px; overflow: hidden;
     box-shadow: 0 4px 24px rgba(0,0,0,0.5);
@@ -77,8 +84,12 @@
       <button id="restartBtn" onclick="restart()">重新开始</button>
     </div>
   </div>
-  <div id="board-container">
-    <canvas id="board"></canvas>
+  <div id="board-area">
+    <div id="capturedBlack" class="captured-row black-captured"></div>
+    <div id="board-container">
+      <canvas id="board"></canvas>
+    </div>
+    <div id="capturedWhite" class="captured-row"></div>
   </div>
 </div>
 
@@ -229,6 +240,8 @@ let historyStack = [];
 let castleRights = { wK: true, wQ: true, bK: true, bQ: true };
 let enPassantTarget = null; // {r,c} or null
 let promoCallback = null;
+let capturedByWhite = [];  // black pieces eaten by white
+let capturedByBlack = [];  // white pieces eaten by black
 
 // Unicode chess pieces
 const GLYPHS = {
@@ -275,6 +288,27 @@ function initSize() {
   canvas.style.height = boardPx + 'px';
 }
 
+// piece importance order for sorting captured display
+const PIECE_VALUE_ORDER = { Q: 0, R: 1, B: 2, N: 3, P: 4 };
+
+function renderCaptured() {
+  const whiteEl = document.getElementById('capturedWhite');
+  const blackEl = document.getElementById('capturedBlack');
+
+  const toHtml = (pieces) => {
+    const sorted = [...pieces].sort((a, b) => PIECE_VALUE_ORDER[a.type] - PIECE_VALUE_ORDER[b.type]);
+    return sorted.map(p => {
+      const glyph = GLYPHS[p.color + p.type];
+      return `<span>${glyph}</span>`;
+    }).join('');
+  };
+
+  // white player's trophies: black pieces they captured (shown at bottom)
+  whiteEl.innerHTML = toHtml(capturedByWhite);
+  // black player's trophies: white pieces they captured (shown at top, rotated 180°)
+  blackEl.innerHTML = toHtml(capturedByBlack);
+}
+
 function initBoard() {
   board = INIT_BOARD.map(row => row.map(p => p ? { color: p.c, type: p.t } : null));
   selected = null;
@@ -285,8 +319,11 @@ function initBoard() {
   castleRights = { wK: true, wQ: true, bK: true, bQ: true };
   enPassantTarget = null;
   promoCallback = null;
+  capturedByWhite = [];
+  capturedByBlack = [];
   promoOverlay.classList.remove('active');
   statusEl.textContent = '⬜ 白方先行';
+  renderCaptured();
 }
 
 // ============= Drawing =============
@@ -638,6 +675,12 @@ async function executeMove(fr, fc, move) {
     record.promoType = promoType;
   }
 
+  // track captured pieces
+  if (captured) {
+    if (piece.color === 'w') capturedByWhite.push({ ...captured });
+    else capturedByBlack.push({ ...captured });
+  }
+
   // execute
   board[move.r][move.c] = piece;
   board[fr][fc] = null;
@@ -645,6 +688,9 @@ async function executeMove(fr, fc, move) {
   if (move.special === 'ep') {
     const epRow = piece.color === 'w' ? move.r + 1 : move.r - 1;
     record.epCaptured = { ...board[epRow][move.c] };
+    // track en passant captured pawn
+    if (piece.color === 'w') capturedByWhite.push({ ...record.epCaptured });
+    else capturedByBlack.push({ ...record.epCaptured });
     board[epRow][move.c] = null;
   }
   if (move.special === 'castleK') {
@@ -713,6 +759,7 @@ async function executeMove(fr, fc, move) {
     statusEl.textContent = turn === 'w' ? '⬜ 白方走棋' : '⬛ 黑方走棋';
   }
 
+  renderCaptured();
   drawBoard();
 }
 
@@ -722,6 +769,8 @@ function undo() {
   if (gameOver) gameOver = false;
 
   const rec = historyStack.pop();
+  const moverArr = rec.piece.color === 'w' ? capturedByWhite : capturedByBlack;
+
   // restore piece
   board[rec.from.r][rec.from.c] = rec.piece;
   if (rec.promoType) {
@@ -729,9 +778,13 @@ function undo() {
   }
   board[rec.to.r][rec.to.c] = rec.captured;
 
+  // restore captured piece from array
+  if (rec.captured) moverArr.pop();
+
   if (rec.special === 'ep') {
     const epRow = rec.piece.color === 'w' ? rec.to.r + 1 : rec.to.r - 1;
     board[epRow][rec.to.c] = rec.epCaptured;
+    moverArr.pop(); // also remove the en passant captured pawn
   }
   if (rec.special === 'castleK') {
     const row = rec.to.r;
@@ -748,6 +801,7 @@ function undo() {
   selected = null;
   validMoves = [];
   statusEl.textContent = turn === 'w' ? '⬜ 白方走棋' : '⬛ 黑方走棋';
+  renderCaptured();
   drawBoard();
 }
 

@@ -19,6 +19,18 @@
   #info { text-align: center; }
   #info h1 { font-size: 22px; color: #5d4037; }
   #status { font-size: 17px; color: #4e342e; font-weight: 600; margin-top: 2px; }
+  #board-area { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .captured-row {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;
+    min-height: 28px; padding: 2px 4px;
+  }
+  .captured-row span {
+    font-size: 22px; font-weight: bold;
+    font-family: "STKaiti", "KaiTi", "楷体", serif;
+  }
+  .captured-row.black-captured { transform: rotate(180deg); }
+  .captured-row .red-piece { color: #c62828; }
+  .captured-row .black-piece { color: #1a1a1a; }
   #board-container {
     background: #dcb468; border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3); padding: 6px;
@@ -57,8 +69,12 @@
       <button id="restartBtn" onclick="restart()">重新开始</button>
     </div>
   </div>
-  <div id="board-container">
-    <canvas id="board"></canvas>
+  <div id="board-area">
+    <div id="capturedBlack" class="captured-row black-captured"></div>
+    <div id="board-container">
+      <canvas id="board"></canvas>
+    </div>
+    <div id="capturedRed" class="captured-row"></div>
   </div>
 </div>
 
@@ -167,6 +183,8 @@ let validMoves = [];
 let currentPlayer = 'red';
 let gameOver = false;
 let historyStack = [];
+let capturedByRed = [];   // black pieces eaten by red
+let capturedByBlack = [];  // red pieces eaten by black
 
 const INIT_BOARD = [
   ['bR','bH','bE','bA','bK','bA','bE','bH','bR'],
@@ -224,7 +242,32 @@ function initBoard() {
   currentPlayer = 'red';
   gameOver = false;
   historyStack = [];
+  capturedByRed = [];
+  capturedByBlack = [];
   statusEl.textContent = '🔴 红方先行';
+  renderCaptured();
+}
+
+// piece importance order for sorting captured display
+const PIECE_ORDER = { K: 0, R: 1, H: 2, C: 3, E: 4, A: 5, P: 6 };
+
+function renderCaptured() {
+  const redEl = document.getElementById('capturedRed');
+  const blackEl = document.getElementById('capturedBlack');
+
+  const toHtml = (pieces, colorClass) => {
+    const sorted = [...pieces].sort((a, b) => PIECE_ORDER[type(a)] - PIECE_ORDER[type(b)]);
+    return sorted.map(p => {
+      const s = side(p);
+      const name = PIECE_NAMES[type(p)][s === 'red' ? 'red' : 'black'];
+      return `<span class="${s === 'red' ? 'red-piece' : 'black-piece'}">${name}</span>`;
+    }).join('');
+  };
+
+  // red player's trophy: black pieces they captured (shown at bottom, normal orientation)
+  redEl.innerHTML = toHtml(capturedByRed, 'black-piece');
+  // black player's trophy: red pieces they captured (shown at top, rotated 180°)
+  blackEl.innerHTML = toHtml(capturedByBlack, 'red-piece');
 }
 
 function side(piece) { return piece ? (piece[0] === 'r' ? 'red' : 'black') : null; }
@@ -591,10 +634,17 @@ function handleClick(e) {
       selected = null;
       validMoves = [];
 
+      // track captured piece
+      if (captured) {
+        if (currentPlayer === 'red') capturedByRed.push(captured);
+        else capturedByBlack.push(captured);
+      }
+
       if (captured && type(captured) === 'K') {
         gameOver = true;
         statusEl.textContent = currentPlayer === 'red' ? '🎉 红方获胜！' : '🎉 黑方获胜！';
         playWin();
+        renderCaptured();
         drawBoard();
         return;
       }
@@ -614,6 +664,7 @@ function handleClick(e) {
       } else {
         statusEl.textContent = currentPlayer === 'red' ? '🔴 红方走棋' : '⚫ 黑方走棋';
       }
+      renderCaptured();
       drawBoard();
       return;
     }
@@ -638,10 +689,17 @@ function undo() {
   const { from, to, piece, captured } = historyStack.pop();
   board[from[0]][from[1]] = piece;
   board[to[0]][to[1]] = captured;
+  // restore captured piece from the appropriate array
+  if (captured) {
+    const mover = side(piece);
+    if (mover === 'red') capturedByRed.pop();
+    else capturedByBlack.pop();
+  }
   currentPlayer = currentPlayer === 'red' ? 'black' : 'red';
   selected = null;
   validMoves = [];
   statusEl.textContent = currentPlayer === 'red' ? '🔴 红方走棋' : '⚫ 黑方走棋';
+  renderCaptured();
   drawBoard();
 }
 
