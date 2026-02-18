@@ -350,7 +350,17 @@ function drawPiece(r, c, piece) {
   ctx.font = `bold ${Math.floor(radius * 1.15)}px "STKaiti", "KaiTi", "楷体", serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(name, x, y + 1);
+
+  // rotate black pieces 180° so opponent can read them
+  if (s === 'black') {
+    ctx.save();
+    ctx.translate(x, y + 1);
+    ctx.rotate(Math.PI);
+    ctx.fillText(name, 0, 0);
+    ctx.restore();
+  } else {
+    ctx.fillText(name, x, y + 1);
+  }
 }
 
 // ============= Move Validation =============

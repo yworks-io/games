@@ -332,7 +332,8 @@ function drawBoard() {
   // pieces
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = `${Math.floor(cellSz * 0.78)}px serif`;
+  const fontSize = Math.floor(cellSz * 0.78);
+  ctx.font = `${fontSize}px serif`;
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       const p = board[r][c];
@@ -340,13 +341,24 @@ function drawBoard() {
         const glyph = GLYPHS[p.color + p.type];
         const x = c * cellSz + cellSz / 2;
         const y = r * cellSz + cellSz / 2;
-        // shadow for white pieces
-        if (p.color === 'w') {
+        // rotate black pieces 180° so opponent can read them
+        if (p.color === 'b') {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(Math.PI);
+          ctx.font = `${fontSize}px serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#1a1a1a';
+          ctx.fillText(glyph, 0, 0);
+          ctx.restore();
+        } else {
+          // shadow for white pieces
           ctx.fillStyle = 'rgba(0,0,0,0.25)';
           ctx.fillText(glyph, x + 1, y + 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(glyph, x, y);
         }
-        ctx.fillStyle = p.color === 'w' ? '#ffffff' : '#1a1a1a';
-        ctx.fillText(glyph, x, y);
       }
     }
   }
