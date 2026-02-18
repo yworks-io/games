@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>五子棋</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: #f0d9b5;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    touch-action: manipulation; user-select: none;
+  }
+  h1 { font-size: 28px; color: #5d4037; margin-bottom: 8px; }
+  #status {
+    font-size: 20px; color: #4e342e; margin-bottom: 12px; min-height: 30px;
+    font-weight: 600;
+  }
+  #board-container {
+    position: relative;
+    background: #dcb468;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    padding: 20px;
+  }
+  canvas { display: block; }
+  #controls {
+    margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  }
+  button {
+    padding: 12px 28px; font-size: 18px; border: none; border-radius: 8px;
+    cursor: pointer; font-weight: 600; transition: all 0.2s;
+  }
+  #undoBtn { background: #8d6e63; color: white; }
+  #undoBtn:hover { background: #6d4c41; }
+  #restartBtn { background: #ef6c00; color: white; }
+  #restartBtn:hover { background: #e65100; }
+  .winner-line { animation: pulse 0.8s ease-in-out infinite alternate; }
+  @keyframes pulse { from { opacity: 0.7; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+<h1>五子棋</h1>
+<div id="status">⚫ 黑棋先行</div>
+<div id="board-container">
+  <canvas id="board"></canvas>
+</div>
+<div id="controls">
+  <button id="undoBtn" onclick="undo()">悔棋</button>
+  <button id="restartBtn" onclick="restart()">重新开始</button>
+</div>
+
+<script>
+// ============= Sound Effects (Web Audio API) =============
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playPlace() {
+  ensureAudio();
+  const ctx = audioCtx;
+  // short woody "tock" sound
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) {
+    const t = i / ctx.sampleRate;
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-t * 60) * 0.6
+            + Math.sin(2 * Math.PI * 800 * t) * Math.exp(-t * 80) * 0.4;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const gain = ctx.createGain();
+  gain.gain.value = 0.5;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 1200;
+  filter.Q.value = 1.5;
+  src.connect(filter).connect(gain).connect(ctx.destination);
+  src.start();
+}
+
+function playCapture() {
+  // slightly heavier sound for undo (reverse feel)
+  ensureAudio();
+  const ctx = audioCtx;
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.06, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) {
+    const t = i / ctx.sampleRate;
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-t * 50) * 0.3
+            + Math.sin(2 * Math.PI * 400 * t) * Math.exp(-t * 60) * 0.3;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const gain = ctx.createGain();
+  gain.gain.value = 0.35;
+  src.connect(gain).connect(ctx.destination);
+  src.start();
+}
+
+function playWin() {
+  ensureAudio();
+  const ctx = audioCtx;
+  const notes = [523, 659, 784, 1047]; // C5 E5 G5 C6
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    const gain = ctx.createGain();
+    const startT = ctx.currentTime + i * 0.12;
+    gain.gain.setValueAtTime(0, startT);
+    gain.gain.linearRampToValueAtTime(0.25, startT + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, startT + 0.35);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(startT);
+    osc.stop(startT + 0.4);
+  });
+}
+
+function playDraw() {
+  ensureAudio();
+  const ctx = audioCtx;
+  const notes = [440, 415]; // A4 Ab4 descending
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const gain = ctx.createGain();
+    const startT = ctx.currentTime + i * 0.2;
+    gain.gain.setValueAtTime(0, startT);
+    gain.gain.linearRampToValueAtTime(0.2, startT + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, startT + 0.4);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(startT);
+    osc.stop(startT + 0.45);
+  });
+}
+
+// ============= Game =============
+const SIZE = 15;
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+const status = document.getElementById('status');
+
+let cellSize, padding, boardPx;
+let grid = [];
+let history = [];
+let currentPlayer = 1; // 1=black, 2=white
+let gameOver = false;
+let winCells = [];
+
+function initSize() {
+  const maxW = Math.min(window.innerWidth - 40, 560);
+  const maxH = window.innerHeight - 200;
+  const sz = Math.min(maxW, maxH);
+  cellSize = Math.floor(sz / (SIZE + 1));
+  padding = cellSize;
+  boardPx = cellSize * (SIZE - 1) + padding * 2;
+  canvas.width = boardPx;
+  canvas.height = boardPx;
+  canvas.style.width = boardPx + 'px';
+  canvas.style.height = boardPx + 'px';
+}
+
+function initGrid() {
+  grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+  history = [];
+  currentPlayer = 1;
+  gameOver = false;
+  winCells = [];
+  status.textContent = '⚫ 黑棋先行';
+}
+
+function drawBoard() {
+  ctx.clearRect(0, 0, boardPx, boardPx);
+  // background
+  ctx.fillStyle = '#dcb468';
+  ctx.fillRect(0, 0, boardPx, boardPx);
+
+  // grid lines
+  ctx.strokeStyle = '#5d4037';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < SIZE; i++) {
+    const pos = padding + i * cellSize;
+    ctx.beginPath();
+    ctx.moveTo(padding, pos);
+    ctx.lineTo(padding + (SIZE - 1) * cellSize, pos);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pos, padding);
+    ctx.lineTo(pos, padding + (SIZE - 1) * cellSize);
+    ctx.stroke();
+  }
+
+  // star points
+  const stars = SIZE === 15 ? [[3,3],[3,11],[7,7],[11,3],[11,11]] : [];
+  ctx.fillStyle = '#5d4037';
+  stars.forEach(([r, c]) => {
+    ctx.beginPath();
+    ctx.arc(padding + c * cellSize, padding + r * cellSize, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // stones
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if (grid[r][c] !== 0) {
+        drawStone(r, c, grid[r][c]);
+      }
+    }
+  }
+
+  // highlight last move
+  if (history.length > 0) {
+    const [lr, lc] = history[history.length - 1];
+    const x = padding + lc * cellSize;
+    const y = padding + lr * cellSize;
+    ctx.strokeStyle = '#e53935';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y, cellSize * 0.15, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // winner line
+  if (winCells.length > 0) {
+    const x1 = padding + winCells[0][1] * cellSize;
+    const y1 = padding + winCells[0][0] * cellSize;
+    const x2 = padding + winCells[4][1] * cellSize;
+    const y2 = padding + winCells[4][0] * cellSize;
+    ctx.strokeStyle = '#e53935';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+}
+
+function drawStone(r, c, player) {
+  const x = padding + c * cellSize;
+  const y = padding + r * cellSize;
+  const radius = cellSize * 0.42;
+
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+
+  if (player === 1) {
+    const grad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.1, x, y, radius);
+    grad.addColorStop(0, '#555');
+    grad.addColorStop(1, '#000');
+    ctx.fillStyle = grad;
+  } else {
+    const grad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.1, x, y, radius);
+    grad.addColorStop(0, '#fff');
+    grad.addColorStop(1, '#ccc');
+    ctx.fillStyle = grad;
+  }
+  ctx.fill();
+  ctx.strokeStyle = player === 1 ? '#000' : '#999';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  let clientX, clientY;
+  if (e.touches) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+  const x = (clientX - rect.left) * scaleX;
+  const y = (clientY - rect.top) * scaleY;
+  const col = Math.round((x - padding) / cellSize);
+  const row = Math.round((y - padding) / cellSize);
+  if (row >= 0 && row < SIZE && col >= 0 && col < SIZE) return [row, col];
+  return null;
+}
+
+function checkWin(r, c, player) {
+  const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+  for (const [dr, dc] of dirs) {
+    let cells = [[r, c]];
+    for (let d = -1; d <= 1; d += 2) {
+      for (let i = 1; i < 5; i++) {
+        const nr = r + dr * i * d;
+        const nc = c + dc * i * d;
+        if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) break;
+        if (grid[nr][nc] !== player) break;
+        if (d === -1) cells.unshift([nr, nc]);
+        else cells.push([nr, nc]);
+      }
+    }
+    if (cells.length >= 5) {
+      return cells.slice(0, 5);
+    }
+  }
+  return null;
+}
+
+function handleClick(e) {
+  e.preventDefault();
+  if (gameOver) return;
+  const pos = getPos(e);
+  if (!pos) return;
+  const [r, c] = pos;
+  if (grid[r][c] !== 0) return;
+
+  grid[r][c] = currentPlayer;
+  history.push([r, c]);
+
+  const win = checkWin(r, c, currentPlayer);
+  if (win) {
+    winCells = win;
+    gameOver = true;
+    status.textContent = currentPlayer === 1 ? '🎉 黑棋获胜！' : '🎉 白棋获胜！';
+    playWin();
+  } else if (history.length === SIZE * SIZE) {
+    gameOver = true;
+    status.textContent = '🤝 平局！';
+    playDraw();
+  } else {
+    playPlace();
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+    status.textContent = currentPlayer === 1 ? '⚫ 黑棋落子' : '⚪ 白棋落子';
+  }
+  drawBoard();
+}
+
+function undo() {
+  if (history.length === 0) return;
+  playCapture();
+  if (gameOver) {
+    gameOver = false;
+    winCells = [];
+  }
+  const [r, c] = history.pop();
+  grid[r][c] = 0;
+  currentPlayer = currentPlayer === 1 ? 2 : 1;
+  status.textContent = currentPlayer === 1 ? '⚫ 黑棋落子' : '⚪ 白棋落子';
+  drawBoard();
+}
+
+function restart() {
+  initGrid();
+  drawBoard();
+}
+
+canvas.addEventListener('click', handleClick);
+canvas.addEventListener('touchend', handleClick);
+
+window.addEventListener('resize', () => { initSize(); drawBoard(); });
+
+initSize();
+initGrid();
+drawBoard();
+</script>
+</body>
+</html>

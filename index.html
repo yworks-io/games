@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>棋类游戏 · games.yworks.io</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: #1a1a2e;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 20px 60px;
+  }
+  header { text-align: center; margin-bottom: 48px; }
+  header h1 {
+    font-size: 36px; color: #eee;
+    letter-spacing: 2px;
+  }
+  header p {
+    font-size: 16px; color: #888; margin-top: 8px;
+  }
+  .games {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    max-width: 900px;
+    width: 100%;
+  }
+  .card {
+    background: #16213e;
+    border-radius: 16px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  }
+  .card-icon {
+    height: 180px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-icon::before {
+    content: '';
+    position: absolute; inset: 0;
+    opacity: 0.15;
+  }
+  .card:nth-child(1) .card-icon { background: linear-gradient(135deg, #2d4059, #3d5a80); }
+  .card:nth-child(2) .card-icon { background: linear-gradient(135deg, #6b2737, #943544); }
+  .card:nth-child(3) .card-icon { background: linear-gradient(135deg, #4a3728, #6b5344); }
+
+  .card-body { padding: 20px 24px 24px; }
+  .card-body h2 {
+    font-size: 22px; color: #eee; margin-bottom: 6px;
+  }
+  .card-body .subtitle {
+    font-size: 14px; color: #aaa; margin-bottom: 12px;
+  }
+  .card-body p {
+    font-size: 14px; color: #777; line-height: 1.6;
+  }
+  .tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.08);
+    color: #aaa;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 12px;
+    margin-right: 4px;
+  }
+  footer {
+    margin-top: 60px;
+    color: #555;
+    font-size: 13px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎮 棋类游戏</h1>
+  <p>和家人一起在 iPad 上对弈吧</p>
+</header>
+
+<div class="games">
+
+  <a class="card" href="gomoku.html">
+    <div class="card-icon">⚫⚪</div>
+    <div class="card-body">
+      <h2>五子棋</h2>
+      <div class="subtitle">Gomoku</div>
+      <p>15×15 标准棋盘，黑白双方轮流落子，先连成五子者获胜。</p>
+      <span class="tag">双人对弈</span>
+      <span class="tag">音效</span>
+    </div>
+  </a>
+
+  <a class="card" href="chinese-chess.html">
+    <div class="card-icon">🀄</div>
+    <div class="card-body">
+      <h2>中国象棋</h2>
+      <div class="subtitle">Chinese Chess · 象棋</div>
+      <p>完整规则：将帅对面、蹩马脚、塞象眼、炮翻山，将军与绝杀判定。</p>
+      <span class="tag">双人对弈</span>
+      <span class="tag">音效</span>
+    </div>
+  </a>
+
+  <a class="card" href="chess.html">
+    <div class="card-icon">♔♚</div>
+    <div class="card-body">
+      <h2>国际象棋</h2>
+      <div class="subtitle">Chess</div>
+      <p>王车易位、吃过路兵、兵升变，将杀与逼和判定，完整国际象棋规则。</p>
+      <span class="tag">双人对弈</span>
+      <span class="tag">音效</span>
+    </div>
+  </a>
+
+</div>
+
+<footer>
+  games.yworks.io
+</footer>
+
+</body>
+</html>
