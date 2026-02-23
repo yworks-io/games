@@ -1,0 +1,2473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>制胜原点 · Origin Goal</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: #1a3a1a; display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; min-height: 100dvh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    touch-action: manipulation; user-select: none;
+    padding: 10px;
+  }
+  #wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  #info { text-align: center; }
+  #info h1 { font-size: 20px; color: #e8e8e0; }
+  #score-display { font-size: 28px; color: #fff; font-weight: 700; margin: 4px 0; letter-spacing: 4px; }
+  #score-display .home-score { color: #ef5350; }
+  #score-display .away-score { color: #42a5f5; }
+  #status { font-size: 15px; color: #c8d8c0; font-weight: 600; margin-top: 2px; min-height: 20px; }
+  #board-area { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  #board-container {
+    border-radius: 10px; overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    flex-shrink: 0; background: #2d5a1e;
+  }
+  canvas { display: block; }
+  #dice-area { display: flex; gap: 8px; align-items: center; margin: 4px 0; flex-wrap: wrap; justify-content: center; }
+  .dice-btn {
+    padding: 8px 16px; font-size: 14px; border: none; border-radius: 8px;
+    cursor: pointer; font-weight: 700; transition: all 0.2s; color: #fff;
+  }
+  .dice-btn.atk { background: #c62828; }
+  .dice-btn.atk:hover { background: #e53935; }
+  .dice-btn.atk:disabled { background: #5a2a2a; color: #888; cursor: default; }
+  .dice-btn.def { background: #1565c0; }
+  .dice-btn.def:hover { background: #1e88e5; }
+  .dice-btn.def:disabled { background: #1a2a4a; color: #888; cursor: default; }
+  #dice-result {
+    font-size: 32px; font-weight: 900; min-width: 44px; text-align: center;
+    color: #ffd54f; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+  #controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  button {
+    padding: 8px 18px; font-size: 14px; border: none; border-radius: 8px;
+    cursor: pointer; font-weight: 600; transition: all 0.2s;
+  }
+  #undoBtn { background: #5d7a4a; color: white; }
+  #undoBtn:hover { background: #4a6238; }
+  #restartBtn { background: #8d6e3f; color: white; }
+  #restartBtn:hover { background: #7a5c32; }
+  #rulesBtn { background: #4a6a7a; color: white; }
+  #rulesBtn:hover { background: #3a5a6a; }
+  #skipBtn { background: #7a4a6a; color: white; display: none; }
+  #skipBtn:hover { background: #6a3a5a; }
+  #coordBtn { background: #6a6a6a; color: white; }
+  #coordBtn:hover { background: #555; }
+  #coordBtn.active { background: #e65100; }
+  @media (orientation: landscape) {
+    #wrapper { flex-direction: row; gap: 16px; }
+    #side { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; max-width: 200px; }
+    #info h1 { font-size: 22px; }
+    #controls { flex-direction: column; }
+    #controls button { width: 100%; }
+  }
+  /* Card modal */
+  #cardOverlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  #cardOverlay.active { display: flex; }
+  #cardBox {
+    border-radius: 16px; padding: 24px 20px; text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6); max-width: 320px; width: 90%;
+    position: relative; overflow: hidden;
+  }
+  #cardBox .card-stripe {
+    position: absolute; top: 0; left: 0; right: 0; height: 6px;
+  }
+  #cardBox h2 { color: #fff; font-size: 20px; margin: 8px 0 4px; }
+  #cardBox .card-en { color: #ccc; font-size: 13px; margin-bottom: 10px; }
+  #cardBox p { color: #e0e0e0; font-size: 15px; line-height: 1.5; margin-bottom: 16px; }
+  #cardOkBtn {
+    padding: 10px 32px; font-size: 15px; border: none; border-radius: 8px;
+    cursor: pointer; font-weight: 700; background: #fff; color: #333;
+  }
+  /* Rules modal */
+  #rulesOverlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  #rulesOverlay.active { display: flex; }
+  #rulesBox {
+    background: #2a3a2a; border-radius: 16px; padding: 20px; text-align: left;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6); max-width: 460px; width: 92%;
+    max-height: 80vh; overflow-y: auto; color: #ddd; font-size: 13px; line-height: 1.6;
+  }
+  #rulesBox h2 { text-align: center; margin-bottom: 12px; color: #fff; }
+  #rulesBox h3 { color: #8bc34a; margin: 10px 0 4px; font-size: 14px; }
+  #rulesBox .close-btn {
+    display: block; margin: 16px auto 0; padding: 8px 32px; font-size: 14px;
+    border: none; border-radius: 8px; background: #5d7a4a; color: #fff;
+    cursor: pointer; font-weight: 600;
+  }
+  /* Placement modal */
+  #placementOverlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 90;
+    align-items: center; justify-content: center;
+  }
+  #placementOverlay.active { display: flex; }
+  #placementBox {
+    background: #2a3a2a; border-radius: 12px; padding: 16px; text-align: center;
+    color: #ddd; font-size: 14px; max-width: 300px;
+  }
+  /* Penalty modal */
+  #penaltyOverlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  #penaltyOverlay.active { display: flex; }
+  #penaltyBox {
+    background: #2a3a2a; border-radius: 16px; padding: 24px; text-align: center;
+    color: #fff; max-width: 340px; width: 90%;
+  }
+  #penaltyBox h2 { margin-bottom: 12px; }
+  .penalty-dice { font-size: 48px; font-weight: 900; margin: 8px; }
+  .penalty-dice.atk-color { color: #ef5350; }
+  .penalty-dice.def-color { color: #42a5f5; }
+  #penaltyRollBtn {
+    padding: 10px 32px; font-size: 15px; border: none; border-radius: 8px;
+    cursor: pointer; font-weight: 700; background: #ffd54f; color: #333; margin-top: 12px;
+  }
+  #penaltyResult { font-size: 18px; font-weight: 700; margin-top: 10px; min-height: 28px; }
+  #penaltyCloseBtn {
+    display: none; padding: 10px 32px; font-size: 15px; border: none; border-radius: 8px;
+    cursor: pointer; font-weight: 700; background: #fff; color: #333; margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div id="wrapper">
+  <div id="side">
+    <div id="info">
+      <h1>制胜原点</h1>
+      <div id="score-display"><span class="home-score">0</span> : <span class="away-score">0</span></div>
+      <div id="status">点击开始游戏</div>
+    </div>
+    <div id="dice-area">
+      <button class="dice-btn atk" id="atkDiceBtn" onclick="rollDice('atk')" disabled>进攻 4-6</button>
+      <span id="dice-result"></span>
+      <button class="dice-btn def" id="defDiceBtn" onclick="rollDice('def')" disabled>防守 1-3</button>
+    </div>
+    <div id="controls">
+      <button id="undoBtn" onclick="undo()">悔棋</button>
+      <button id="rulesBtn" onclick="showRules()">规则</button>
+      <button id="restartBtn" onclick="restart()">重新开始</button>
+      <button id="skipBtn" onclick="skipAction()">跳过</button>
+      <button id="coordBtn" onclick="toggleCoords()">坐标</button>
+    </div>
+  </div>
+  <div id="board-area">
+    <div id="board-container">
+      <canvas id="board"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Card overlay -->
+<div id="cardOverlay">
+  <div id="cardBox">
+    <div class="card-stripe" id="cardStripe"></div>
+    <h2 id="cardName"></h2>
+    <div class="card-en" id="cardNameEn"></div>
+    <p id="cardDesc"></p>
+    <button id="cardOkBtn" onclick="closeCard()">确定</button>
+  </div>
+</div>
+
+<!-- Rules overlay -->
+<div id="rulesOverlay">
+  <div id="rulesBox">
+    <h2>游戏规则</h2>
+    <h3>目标</h3>
+    <p>将棋子移过对方球门线即为进球，进球多的一方获胜。</p>
+    <h3>骰子</h3>
+    <p>每回合选择进攻骰（4-6）或防守骰（1-3），掷出的点数即为移动步数。</p>
+    <h3>抢断</h3>
+    <p>棋子落到对手棋子的位置即为抢断，被抢断的棋子回到己方半场深绿色点位。本方半场只能用防守骰抢断；对方半场两种骰子均可。</p>
+    <h3>正面防守</h3>
+    <p>相邻格有对方棋子时，不能穿过该棋子，必须绕行。</p>
+    <h3>事件卡</h3>
+    <p>在对方半场落入红/黄/蓝色点位时抽取对应卡牌。红卡75%有利，黄卡66%有利，蓝卡50%有利。</p>
+    <h3>快攻点</h3>
+    <p>4个快攻点之间可以互相跳跃。落入快攻点时必须跳跃（全部占满除外）。</p>
+    <h3>落点有己方棋子</h3>
+    <p>若移动终点有己方棋子，可继续向前一步（可连锁触发各种效果）。</p>
+    <h3>门将</h3>
+    <p>门将抢断只能使用防守骰，但移动可使用任意骰子。</p>
+    <h3>点球</h3>
+    <p>进攻方掷进攻骰，防守方掷防守骰，进攻方≥防守方即进球。</p>
+    <button class="close-btn" onclick="hideRules()">关闭</button>
+  </div>
+</div>
+
+<!-- Placement overlay -->
+<div id="placementOverlay">
+  <div id="placementBox">
+    <p id="placementMsg">请在棋盘上选择一个目标位置</p>
+  </div>
+</div>
+
+<!-- Penalty overlay -->
+<div id="penaltyOverlay">
+  <div id="penaltyBox">
+    <h2>点球大战</h2>
+    <p id="penaltyInfo"></p>
+    <div>
+      <span class="penalty-dice atk-color" id="penaltyAtkDice">?</span>
+      <span style="font-size:24px;color:#888"> vs </span>
+      <span class="penalty-dice def-color" id="penaltyDefDice">?</span>
+    </div>
+    <div id="penaltyResult"></div>
+    <button id="penaltyRollBtn" onclick="rollPenalty()">掷骰子</button>
+    <button id="penaltyCloseBtn" onclick="closePenalty()">确定</button>
+  </div>
+</div>
+
+<script>
+// ============= Sound Effects (Web Audio API) =============
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playSelect() {
+  ensureAudio();
+  const a = audioCtx, t0 = a.currentTime;
+  const osc = a.createOscillator(); osc.type = 'sine'; osc.frequency.value = 600;
+  const g = a.createGain();
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(0.15, t0 + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.1);
+  osc.connect(g).connect(a.destination); osc.start(t0); osc.stop(t0 + 0.12);
+}
+
+function playMove() {
+  ensureAudio();
+  const a = audioCtx;
+  const buf = a.createBuffer(1, a.sampleRate * 0.1, a.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) {
+    const t = i / a.sampleRate;
+    d[i] = (Math.random() * 2 - 1) * Math.exp(-t * 50) * 0.5
+         + Math.sin(2 * Math.PI * 900 * t) * Math.exp(-t * 70) * 0.4;
+  }
+  const src = a.createBufferSource(); src.buffer = buf;
+  const g = a.createGain(); g.gain.value = 0.45;
+  const f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = 1.2;
+  src.connect(f).connect(g).connect(a.destination); src.start();
+}
+
+function playTackle() {
+  ensureAudio();
+  const a = audioCtx;
+  const buf = a.createBuffer(1, a.sampleRate * 0.15, a.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) {
+    const t = i / a.sampleRate;
+    d[i] = (Math.random() * 2 - 1) * Math.exp(-t * 30) * 0.7
+         + Math.sin(2 * Math.PI * 400 * t) * Math.exp(-t * 35) * 0.5;
+  }
+  const src = a.createBufferSource(); src.buffer = buf;
+  const g = a.createGain(); g.gain.value = 0.55;
+  src.connect(g).connect(a.destination); src.start();
+}
+
+function playGoal() {
+  ensureAudio();
+  const a = audioCtx, t0 = a.currentTime;
+  [523, 659, 784, 1047, 1319].forEach((freq, i) => {
+    const osc = a.createOscillator(); osc.type = 'triangle'; osc.frequency.value = freq;
+    const g = a.createGain();
+    const st = t0 + i * 0.1;
+    g.gain.setValueAtTime(0, st);
+    g.gain.linearRampToValueAtTime(0.3, st + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.001, st + 0.5);
+    osc.connect(g).connect(a.destination); osc.start(st); osc.stop(st + 0.55);
+  });
+}
+
+function playWhistle() {
+  ensureAudio();
+  const a = audioCtx, t0 = a.currentTime;
+  const osc = a.createOscillator(); osc.type = 'sine';
+  osc.frequency.setValueAtTime(2800, t0);
+  osc.frequency.linearRampToValueAtTime(2400, t0 + 0.3);
+  const g = a.createGain();
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(0.2, t0 + 0.02);
+  g.gain.setValueAtTime(0.2, t0 + 0.25);
+  g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.35);
+  osc.connect(g).connect(a.destination); osc.start(t0); osc.stop(t0 + 0.4);
+}
+
+function playDiceRoll() {
+  ensureAudio();
+  const a = audioCtx;
+  const buf = a.createBuffer(1, a.sampleRate * 0.3, a.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) {
+    const t = i / a.sampleRate;
+    d[i] = (Math.random() * 2 - 1) * Math.exp(-t * 8) * 0.3
+         * (1 + 0.5 * Math.sin(2 * Math.PI * 60 * t));
+  }
+  const src = a.createBufferSource(); src.buffer = buf;
+  const g = a.createGain(); g.gain.value = 0.5;
+  src.connect(g).connect(a.destination); src.start();
+}
+
+function playCardFlip() {
+  ensureAudio();
+  const a = audioCtx, t0 = a.currentTime;
+  const osc = a.createOscillator(); osc.type = 'sine';
+  osc.frequency.setValueAtTime(800, t0);
+  osc.frequency.linearRampToValueAtTime(1200, t0 + 0.05);
+  osc.frequency.linearRampToValueAtTime(600, t0 + 0.1);
+  const g = a.createGain();
+  g.gain.setValueAtTime(0.15, t0);
+  g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.12);
+  osc.connect(g).connect(a.destination); osc.start(t0); osc.stop(t0 + 0.15);
+}
+
+function playBounce() {
+  ensureAudio();
+  const a = audioCtx, t0 = a.currentTime;
+  [700, 1000].forEach((freq, i) => {
+    const osc = a.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq;
+    const g = a.createGain();
+    const st = t0 + i * 0.08;
+    g.gain.setValueAtTime(0.2, st);
+    g.gain.exponentialRampToValueAtTime(0.001, st + 0.1);
+    osc.connect(g).connect(a.destination); osc.start(st); osc.stop(st + 0.12);
+  });
+}
+
+function playUndo() {
+  ensureAudio();
+  const a = audioCtx, t0 = a.currentTime;
+  const osc = a.createOscillator(); osc.type = 'sine';
+  osc.frequency.setValueAtTime(500, t0);
+  osc.frequency.linearRampToValueAtTime(300, t0 + 0.1);
+  const g = a.createGain();
+  g.gain.setValueAtTime(0.2, t0);
+  g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.15);
+  osc.connect(g).connect(a.destination); osc.start(t0); osc.stop(t0 + 0.18);
+}
+
+function playNegative() {
+  ensureAudio();
+  const a = audioCtx, t0 = a.currentTime;
+  [400, 300].forEach((freq, i) => {
+    const osc = a.createOscillator(); osc.type = 'square'; osc.frequency.value = freq;
+    const g = a.createGain();
+    const st = t0 + i * 0.15;
+    g.gain.setValueAtTime(0, st);
+    g.gain.linearRampToValueAtTime(0.12, st + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, st + 0.15);
+    osc.connect(g).connect(a.destination); osc.start(st); osc.stop(st + 0.18);
+  });
+}
+
+// ============= Constants =============
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+const statusEl = document.getElementById('status');
+const diceResultEl = document.getElementById('dice-result');
+const atkBtn = document.getElementById('atkDiceBtn');
+const defBtn = document.getElementById('defDiceBtn');
+const skipBtn = document.getElementById('skipBtn');
+
+// Pointy-top hex with even-r offset coordinates (even rows aligned, odd rows shifted right)
+// Board stored as map of "col,row" keys
+function hexNeighbors(col, row) {
+  if ((row & 1) === 0) {
+    return [
+      [col+1, row], [col, row-1], [col-1, row-1],
+      [col-1, row], [col-1, row+1], [col, row+1]
+    ];
+  } else {
+    return [
+      [col+1, row], [col+1, row-1], [col, row-1],
+      [col-1, row], [col, row+1], [col+1, row+1]
+    ];
+  }
+}
+
+function hexDist(c1, r1, c2, r2) {
+  // Convert even-r offset to cube coordinates for distance
+  const x1 = c1 - (r1 - (r1&1)) / 2, z1 = r1, y1 = -x1 - z1;
+  const x2 = c2 - (r2 - (r2&1)) / 2, z2 = r2, y2 = -x2 - z2;
+  return Math.max(Math.abs(x1-x2), Math.abs(y1-y2), Math.abs(z1-z2));
+}
+
+function hexKey(c, r) { return c + ',' + r; }
+function fromKey(k) { const p = k.split(','); return [+p[0], +p[1]]; }
+
+// ============= Board Definition =============
+// Pointy-top hex, even-r offset. Rectangular grid: 16 cols (0–15) × 35 rows (0–34)
+// Goals at row -1 (away/top) and row 35 (home/bottom)
+// Midfield at row 17. Away half rows 1–16, home half rows 18–33.
+
+const CELL_NORMAL = 0;
+const CELL_DARK_GREEN = 1;
+const CELL_RED = 2;
+const CELL_YELLOW = 3;
+const CELL_BLUE = 4;
+const CELL_FAST_ATTACK = 5;
+const CELL_GOAL_MOUTH = 6;
+const CELL_GOAL = 7;
+
+const boardCells = {}; // key -> { col, row, type, half: 'home'|'away'|'mid' }
+
+function buildBoard() {
+  // Clear previous
+  for (const k in boardCells) delete boardCells[k];
+
+  // Main field: 16 columns (0-15) × 35 rows (0-34)
+  for (let r = 0; r <= 34; r++) {
+    for (let c = 0; c <= 15; c++) {
+      const half = r < 17 ? 'away' : (r > 17 ? 'home' : 'mid');
+      boardCells[hexKey(c, r)] = { col: c, row: r, type: CELL_NORMAL, half };
+    }
+  }
+
+  // ---- Goal hexes (outside the field) ----
+  // Away goal (top): row -1, cols 7,8 — neighbors of goal mouth at row 0
+  boardCells[hexKey(7, -1)] = { col: 7, row: -1, type: CELL_GOAL, half: 'away_goal' };
+  boardCells[hexKey(8, -1)] = { col: 8, row: -1, type: CELL_GOAL, half: 'away_goal' };
+  // Home goal (bottom): row 35, cols 7,8
+  boardCells[hexKey(7, 35)] = { col: 7, row: 35, type: CELL_GOAL, half: 'home_goal' };
+  boardCells[hexKey(8, 35)] = { col: 8, row: 35, type: CELL_GOAL, half: 'home_goal' };
+
+  // Goal mouth (entry to goal) — at goal line row 0 and 34
+  [7, 8].forEach(c => {
+    boardCells[hexKey(c, 0)].type = CELL_GOAL_MOUTH;
+    boardCells[hexKey(c, 34)].type = CELL_GOAL_MOUTH;
+  });
+
+  // ---- Dark green starting positions (~18 per half) ----
+  // Away half (rows 2-16) — symmetric layout
+  const awayGreen = [
+    [7,2],[8,2],
+    [5,3],[10,3],
+    [3,5],[7,5],[8,5],[12,5],
+    [2,7],[5,7],[10,7],[13,7],
+    [1,9],[4,9],[7,9],[8,9],[11,9],[14,9],
+    [3,11],[6,11],[9,11],[12,11],
+    [2,13],[5,13],[10,13],[13,13],
+    [3,15],[7,15],[8,15],[12,15]
+  ];
+  // Home half (rows 18-32) — mirror
+  const homeGreen = [
+    [3,19],[7,19],[8,19],[12,19],
+    [2,21],[5,21],[10,21],[13,21],
+    [3,23],[6,23],[9,23],[12,23],
+    [1,25],[4,25],[7,25],[8,25],[11,25],[14,25],
+    [2,27],[5,27],[10,27],[13,27],
+    [3,29],[7,29],[8,29],[12,29],
+    [5,31],[10,31],
+    [7,32],[8,32]
+  ];
+
+  awayGreen.forEach(([c,r]) => {
+    const k = hexKey(c,r);
+    if (boardCells[k] && boardCells[k].type === CELL_NORMAL) boardCells[k].type = CELL_DARK_GREEN;
+  });
+  homeGreen.forEach(([c,r]) => {
+    const k = hexKey(c,r);
+    if (boardCells[k] && boardCells[k].type === CELL_NORMAL) boardCells[k].type = CELL_DARK_GREEN;
+  });
+
+  // ---- Event card spots ----
+  // Red spots (near goal areas — 75% favorable), 4 per half
+  const redCells = [
+    [5,2],[10,2],[7,3],[8,3],
+    [7,31],[8,31],[5,32],[10,32]
+  ];
+  // Yellow spots (mid-zone — 66% favorable), 6 per half
+  const yellowCells = [
+    [2,8],[13,8],[5,9],[10,9],[3,10],[12,10],
+    [3,24],[12,24],[5,25],[10,25],[2,26],[13,26]
+  ];
+  // Blue spots (near midfield — 50% favorable), 4 per half
+  const blueCells = [
+    [3,13],[12,13],[6,14],[9,14],
+    [6,20],[9,20],[3,21],[12,21]
+  ];
+
+  redCells.forEach(([c,r]) => {
+    const k = hexKey(c,r);
+    if (boardCells[k] && boardCells[k].type === CELL_NORMAL) boardCells[k].type = CELL_RED;
+  });
+  yellowCells.forEach(([c,r]) => {
+    const k = hexKey(c,r);
+    if (boardCells[k] && boardCells[k].type === CELL_NORMAL) boardCells[k].type = CELL_YELLOW;
+  });
+  blueCells.forEach(([c,r]) => {
+    const k = hexKey(c,r);
+    if (boardCells[k] && boardCells[k].type === CELL_NORMAL) boardCells[k].type = CELL_BLUE;
+  });
+
+  // ---- Fast attack points (4 total, near midfield corners) ----
+  const fastAttackCells = [[1,15],[14,15],[1,19],[14,19]];
+  fastAttackCells.forEach(([c,r]) => {
+    const k = hexKey(c,r);
+    if (boardCells[k]) boardCells[k].type = CELL_FAST_ATTACK;
+  });
+}
+
+// Fast attack connections — 4 points can jump between each other
+const FAST_ATTACK_POINTS = [
+  { col: 1, row: 15 },
+  { col: 14, row: 15 },
+  { col: 1, row: 19 },
+  { col: 14, row: 19 }
+];
+
+function getOtherFastAttackPoints(col, row) {
+  return FAST_ATTACK_POINTS.filter(p => !(p.col === col && p.row === row));
+}
+
+// ============= Event Cards =============
+const CARDS = {
+  blue: [
+    { id:'B01', name:'裁判误判', nameEn:'Referee Error', desc:'对手获得黄牌一张', favorable: true, effect:'yellow_card_opponent' },
+    { id:'B02', name:'协助防守', nameEn:'Defensive Support', desc:'移动对手棋子3步', favorable: true, effect:'move_opponent', value:3 },
+    { id:'B03', name:'刻苦训练', nameEn:'Train Hard', desc:'奖励4步', favorable: true, effect:'reward_steps', value:4 },
+    { id:'B04', name:'反越位', nameEn:'Beat the Offside Trap', desc:'移动对手棋子4步', favorable: true, effect:'move_opponent', value:4 },
+    { id:'B05', name:'补水时间', nameEn:'Water Break', desc:'移动对手棋子3步', favorable: true, effect:'move_opponent', value:3 },
+    { id:'B06', name:'阅读比赛', nameEn:'Game Reading', desc:'奖励4步', favorable: true, effect:'reward_steps', value:4 },
+    { id:'B07', name:'球迷助威', nameEn:'Fans Support', desc:'奖励3步', favorable: true, effect:'reward_steps', value:3 },
+    { id:'B08', name:'鼓励队友', nameEn:'Encourage Teammates', desc:'奖励3步', favorable: true, effect:'reward_steps', value:3 },
+    { id:'B09', name:'尊重对手', nameEn:'Respect Opponent', desc:'将己方一名球员移至本方半场任意空绿色点位', favorable: true, effect:'place_own_friendly_green' },
+    { id:'B10', name:'开场逆风', nameEn:'Slow Start', desc:'对手获得红牌一张', favorable: true, effect:'red_card_opponent' },
+    { id:'B11', name:'口头警告', nameEn:'Verbal Warning', desc:'被对手移动4步', favorable: false, effect:'opponent_moves_you', value:4 },
+    { id:'B12', name:'进攻犯规', nameEn:'Offensive Foul', desc:'被对手移动3步', favorable: false, effect:'opponent_moves_you', value:3 },
+    { id:'B13', name:'主动失误', nameEn:'Unforced Error', desc:'被对手移动3步', favorable: false, effect:'opponent_moves_you', value:3 },
+    { id:'B14', name:'球员受伤', nameEn:'Player Injured', desc:'对手可将其一名球员移至你方半场任意空绿色点位', favorable: false, effect:'opponent_place_in_your_half' },
+    { id:'B15', name:'自信爆棚', nameEn:'Boosted Confidence', desc:'获得黄牌一张', favorable: false, effect:'yellow_card_self' },
+    { id:'B16', name:'情绪失控', nameEn:'Emotional Breakdown', desc:'奖励对手4步', favorable: false, effect:'reward_opponent', value:4 },
+    { id:'B17', name:'防守犯规', nameEn:'Defensive Foul', desc:'奖励对手3步', favorable: false, effect:'reward_opponent', value:3 },
+    { id:'B18', name:'界外球违例', nameEn:'Foul Throw', desc:'奖励对手3步', favorable: false, effect:'reward_opponent', value:3 },
+    { id:'B19', name:'沟通不畅', nameEn:'Poor Communication', desc:'被对手移动4步', favorable: false, effect:'opponent_moves_you', value:4 },
+    { id:'B20', name:'时来运转', nameEn:'Turn of Fortune', desc:'获得红牌一张', favorable: false, effect:'red_card_self' },
+  ],
+  red: [
+    { id:'R01', name:'点球', nameEn:'Penalty', desc:'获得点球机会！进攻骰≥防守骰即进球', favorable: true, effect:'penalty' },
+    { id:'R02', name:'面授机宜', nameEn:'Secret Coaching', desc:'奖励4步', favorable: true, effect:'reward_steps', value:4 },
+    { id:'R03', name:'逆风翻盘', nameEn:'Great Comeback', desc:'奖励6步', favorable: true, effect:'reward_steps', value:6 },
+    { id:'R04', name:'乌龙球', nameEn:'Own Goal', desc:'对手掷骰子为4则记为乌龙球', favorable: true, effect:'own_goal_check' },
+    { id:'R05', name:'进攻有利', nameEn:'Advantage Played', desc:'移动对手棋子4步', favorable: true, effect:'move_opponent', value:4 },
+    { id:'R06', name:'禁区犯规', nameEn:'Foul in Box', desc:'判给对手点球', favorable: false, effect:'penalty_opponent' },
+    { id:'R07', name:'体力下降', nameEn:'Stamina Drop', desc:'被对手移动4步', favorable: false, effect:'opponent_moves_you', value:4 },
+    { id:'R08', name:'VAR-红牌动作', nameEn:'VAR-Red Card Review', desc:'再掷一次，若为6则罚下对手一人', favorable: true, effect:'var_red_card' },
+    { id:'R09', name:'累计黄牌', nameEn:'Second Yellow', desc:'对手获得红牌一张', favorable: true, effect:'red_card_opponent' },
+    { id:'R10', name:'体能优势', nameEn:'Physical Advantage', desc:'将己方一名球员移至全场任意空绿色点位', favorable: true, effect:'place_own_any_green' },
+    { id:'R11', name:'前场紧逼', nameEn:'High Press', desc:'将对手任意一名球员移至任意空绿色点位', favorable: true, effect:'move_opponent_to_green' },
+    { id:'R12', name:'脑力下降', nameEn:'Mental Fatigue', desc:'奖励对手6步', favorable: false, effect:'reward_opponent', value:6 },
+    { id:'R13', name:'门将进球', nameEn:'Goalkeeper Scores', desc:'再掷一次，若为6则门将进球', favorable: true, effect:'goalkeeper_goal_check' },
+    { id:'R14', name:'长传冲吊', nameEn:'Long Ball Attack', desc:'将己方一名球员移至对手半场任意空绿色点位', favorable: true, effect:'place_own_opponent_green' },
+    { id:'R15', name:'VAR取消进球', nameEn:'VAR-Goal Review', desc:'再掷一次，若为6则吹掉对手一个进球', favorable: true, effect:'var_cancel_goal' },
+    { id:'R16', name:'VAR判罚点球', nameEn:'VAR-Penalty Review', desc:'再掷一次，若大于4则获得点球', favorable: true, effect:'var_penalty' },
+  ],
+  yellow: [
+    { id:'Y01', name:'假摔被罚', nameEn:'Penalized for Diving', desc:'对手获得红牌一张', favorable: true, effect:'red_card_opponent' },
+    { id:'Y02', name:'严重犯规', nameEn:'Serious Foul', desc:'允许对手选择一名球员移至全场任意空绿色点位', favorable: false, effect:'opponent_place_any_green' },
+    { id:'Y03', name:'发现空挡', nameEn:'Found the Gap', desc:'将己方一名球员移至对手半场任意空绿色点位', favorable: true, effect:'place_own_opponent_green' },
+    { id:'Y04', name:'被严重犯规', nameEn:'Suffer a Serious Foul', desc:'将己方一名球员移至全场任意空绿色点位', favorable: true, effect:'place_own_any_green' },
+    { id:'Y05', name:'任意球', nameEn:'Free-kick', desc:'再掷一次骰子', favorable: true, effect:'extra_roll' },
+    { id:'Y06', name:'进攻角球', nameEn:'Attacking Corner', desc:'奖励4步', favorable: true, effect:'reward_steps', value:4 },
+    { id:'Y07', name:'对手失误', nameEn:"Opponent's Mistake", desc:'奖励6步', favorable: true, effect:'reward_steps', value:6 },
+    { id:'Y08', name:'越位陷阱', nameEn:'Offside Trap', desc:'移动对手棋子4步', favorable: true, effect:'move_opponent', value:4 },
+    { id:'Y09', name:'团队配合', nameEn:'Teamwork', desc:'奖励两个球员分别移动2步', favorable: true, effect:'two_players_move', value:2 },
+    { id:'Y10', name:'质疑裁判', nameEn:'Arguing with Referee', desc:'被对手移动6步', favorable: false, effect:'opponent_moves_you', value:6 },
+    { id:'Y11', name:'手球犯规', nameEn:'Handball', desc:'奖励对手4步', favorable: false, effect:'reward_opponent', value:4 },
+    { id:'Y12', name:'黄牌警告', nameEn:'Yellow Card', desc:'停一次', favorable: false, effect:'skip_turn' },
+    { id:'Y13', name:'快发任意球', nameEn:'Quick Free-kick', desc:'移动对手棋子4步', favorable: true, effect:'move_opponent', value:4 },
+    { id:'Y14', name:'防守反击', nameEn:'Counter Attack', desc:'奖励4步', favorable: true, effect:'reward_steps', value:4 },
+    { id:'Y15', name:'拖延时间', nameEn:'Time-Wasting', desc:'被对手移动4步', favorable: false, effect:'opponent_moves_you', value:4 },
+    { id:'Y16', name:'事态升级', nameEn:'Escalation', desc:'获得红牌一张', favorable: false, effect:'red_card_self' },
+    { id:'Y17', name:'间接任意球', nameEn:'Indirect Free-kick', desc:'再投一次，大于4可走', favorable: true, effect:'indirect_free_kick' },
+    { id:'Y18', name:'拉扯空间', nameEn:'Create Space', desc:'奖励两个球员分别移动2步', favorable: true, effect:'two_players_move', value:2 },
+  ]
+};
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ============= Game State =============
+const PHASE = {
+  PREGAME: 'pregame',
+  DICE_SELECT: 'dice_select',
+  PIECE_SELECT: 'piece_select',
+  MOVE_SELECT: 'move_select',
+  CARD_SHOWN: 'card_shown',
+  CARD_EFFECT: 'card_effect',         // waiting for player to execute card effect
+  PLACE_PIECE: 'place_piece',         // select a hex to place a piece
+  SELECT_TARGET_PIECE: 'select_target_piece', // select which piece to apply effect to
+  FAST_ATTACK_SELECT: 'fast_attack_select',
+  PENALTY: 'penalty',
+  GOAL_SCORED: 'goal_scored',
+  GAME_OVER: 'game_over',
+};
+
+let phase = PHASE.PREGAME;
+let currentTeam = 'home'; // 'home' (bottom, red) or 'away' (top, blue)
+let score = { home: 0, away: 0 };
+let pieces = []; // { id, team, col, row, isGK, yellowCards, removed }
+let diceType = null;  // 'atk' or 'def'
+let diceValue = 0;
+let selectedPiece = null; // piece object
+let reachableHexes = new Set(); // set of hex keys
+let reachablePaths = {};  // hexKey -> array of direction vectors for path
+let decks = { blue: [], yellow: [], red: [] };
+let discards = { blue: [], yellow: [], red: [] };
+let currentCard = null;
+let cardResolveCallback = null;
+let pendingEffect = null; // { type, team, value, ... }
+let historyStack = [];
+let skipNextTurn = { home: false, away: false };
+let boardW, boardH, hexSize, offsetX, offsetY;
+let pieceIdCounter = 0;
+let showCoords = false;
+let lastMoveFrom = null;
+let lastMoveTo = null;
+let animatingDice = false;
+
+// For card effects requiring piece/hex selection
+let effectSelectMode = null; // null or { type, filter, callback }
+
+function otherTeam(t) { return t === 'home' ? 'away' : 'home'; }
+
+function teamHalf(team) { return team === 'home' ? 'home' : 'away'; }
+
+function isInOwnHalf(team, col, row) {
+  const cell = boardCells[hexKey(col, row)];
+  if (!cell) return false;
+  if (team === 'home') return cell.half === 'home';
+  return cell.half === 'away';
+}
+
+function isInOpponentHalf(team, col, row) {
+  const cell = boardCells[hexKey(col, row)];
+  if (!cell) return false;
+  if (team === 'home') return cell.half === 'away' || cell.half === 'mid';
+  return cell.half === 'home' || cell.half === 'mid';
+}
+
+function isMidfield(col, row) {
+  const cell = boardCells[hexKey(col, row)];
+  return cell && cell.half === 'mid';
+}
+
+function getPieceAt(col, row) {
+  return pieces.find(p => !p.removed && p.col === col && p.row === row) || null;
+}
+
+function getDarkGreenSpots(halfFilter) {
+  const spots = [];
+  for (const [k, cell] of Object.entries(boardCells)) {
+    if (cell.type === CELL_DARK_GREEN) {
+      if (!halfFilter || cell.half === halfFilter) {
+        if (!getPieceAt(cell.col, cell.row)) {
+          spots.push({ col: cell.col, row: cell.row });
+        }
+      }
+    }
+  }
+  return spots;
+}
+
+function getGreenSpots(halfFilter) {
+  // All dark green spots, optionally filtered by half
+  const spots = [];
+  for (const [k, cell] of Object.entries(boardCells)) {
+    if (cell.type === CELL_DARK_GREEN) {
+      if (!halfFilter || cell.half === halfFilter || halfFilter === 'any') {
+        if (!getPieceAt(cell.col, cell.row)) {
+          spots.push({ col: cell.col, row: cell.row });
+        }
+      }
+    }
+  }
+  return spots;
+}
+
+// ============= Hex Rendering =============
+function isLandscape() { return window.innerWidth > window.innerHeight; }
+
+function hexToPixel(col, row) {
+  // Pointy-top hex, even-r offset
+  const xOff = (row & 1) ? hexSize * Math.sqrt(3) / 2 : 0;
+  const x = col * hexSize * Math.sqrt(3) + xOff;
+  const y = row * hexSize * 1.5;
+  return { x: x + offsetX, y: y + offsetY };
+}
+
+function pixelToHex(px, py) {
+  // Inverse: find closest hex center
+  let bestDist = Infinity, bestCol = 0, bestRow = 0;
+  for (const [k, cell] of Object.entries(boardCells)) {
+    const { x, y } = hexToPixel(cell.col, cell.row);
+    const d = (px - x) * (px - x) + (py - y) * (py - y);
+    if (d < bestDist) {
+      bestDist = d;
+      bestCol = cell.col;
+      bestRow = cell.row;
+    }
+  }
+  if (bestDist < hexSize * hexSize * 1.2) return { col: bestCol, row: bestRow };
+  return null;
+}
+
+function drawHexShape(cx, cy, size) {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const angle = Math.PI / 180 * (60 * i + 30); // pointy-top: offset 30°
+    const x = cx + size * Math.cos(angle);
+    const y = cy + size * Math.sin(angle);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+
+function initSize() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  let maxW, maxH;
+  if (isLandscape()) {
+    maxH = vh - 20;
+    maxW = vw * 0.65;
+  } else {
+    maxW = vw - 20;
+    maxH = vh - 180;
+  }
+  // Pointy-top hex, even-r offset
+  // Grid: 16 cols (0-15), rows -1 to 35 (37 rows total including goals)
+  // Width: (16 + 0.5) * sqrt(3) * size  (extra 0.5 for odd-row shift)
+  // Height: 37 * 1.5 * size + size (rows -1 to 35)
+  const totalCols = 16;
+  const totalRows = 37; // rows -1 to 35
+  const wPerUnit = (totalCols + 0.5) * Math.sqrt(3);
+  const hPerUnit = totalRows * 1.5 + 1;
+  const sizeByW = maxW / wPerUnit;
+  const sizeByH = maxH / hPerUnit;
+  hexSize = Math.min(sizeByW, sizeByH);
+  hexSize = Math.max(hexSize, 5);
+
+  boardW = Math.ceil(wPerUnit * hexSize + hexSize * 2);
+  boardH = Math.ceil(hPerUnit * hexSize + hexSize * 2);
+  canvas.width = boardW;
+  canvas.height = boardH;
+  canvas.style.width = boardW + 'px';
+  canvas.style.height = boardH + 'px';
+
+  // Offset so that col=0,row=-1 is visible with padding
+  offsetX = hexSize * 1.5;
+  offsetY = hexSize * 2.5;
+}
+
+const HEX_COLORS = {
+  [CELL_NORMAL]: '#4a8c3f',
+  [CELL_DARK_GREEN]: '#2d6b25',
+  [CELL_RED]: '#d32f2f',
+  [CELL_YELLOW]: '#f9a825',
+  [CELL_BLUE]: '#1976d2',
+  [CELL_FAST_ATTACK]: '#ff8f00',
+  [CELL_GOAL_MOUTH]: '#e8e8e8',
+  [CELL_GOAL]: '#bdbdbd',
+};
+
+function drawBoard() {
+  ctx.clearRect(0, 0, boardW, boardH);
+
+  // Background
+  ctx.fillStyle = '#2d5a1e';
+  ctx.fillRect(0, 0, boardW, boardH);
+
+  // Draw all hex cells
+  for (const [k, cell] of Object.entries(boardCells)) {
+    const { x, y } = hexToPixel(cell.col, cell.row);
+    const sz = hexSize * 0.92;
+
+    // Fill
+    drawHexShape(x, y, sz);
+    ctx.fillStyle = HEX_COLORS[cell.type] || '#4a8c3f';
+    ctx.fill();
+
+    // Border
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Fast attack arrows
+    if (cell.type === CELL_FAST_ATTACK) {
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${Math.floor(hexSize * 0.5)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⚡', x, y);
+    }
+
+    // Goal net pattern
+    if (cell.type === CELL_GOAL) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+      ctx.lineWidth = 0.5;
+      for (let i = -3; i <= 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x - sz, y + i * sz / 3);
+        ctx.lineTo(x + sz, y + i * sz / 3);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x + i * sz / 3, y - sz);
+        ctx.lineTo(x + i * sz / 3, y + sz);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Draw continuous white pitch markings (football field lines)
+  drawPitchLines();
+
+  // Draw goal posts
+  drawGoalPosts();
+
+  // Draw reachable hexes highlight
+  for (const k of reachableHexes) {
+    const [c, r] = fromKey(k);
+    const { x, y } = hexToPixel(c, r);
+    const occupant = getPieceAt(c, r);
+    drawHexShape(x, y, hexSize * 0.92);
+    if (occupant && occupant.team !== currentTeam) {
+      ctx.fillStyle = 'rgba(255, 80, 80, 0.4)';
+    } else {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    }
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  // Effect select mode highlights
+  if (effectSelectMode) {
+    const validHexes = effectSelectMode.validHexes || new Set();
+    for (const k of validHexes) {
+      const [c, r] = fromKey(k);
+      const { x, y } = hexToPixel(c, r);
+      drawHexShape(x, y, hexSize * 0.92);
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
+      ctx.fill();
+      ctx.strokeStyle = '#ffd54f';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+
+  // Draw last move highlight
+  if (lastMoveFrom) {
+    const { x, y } = hexToPixel(lastMoveFrom.col, lastMoveFrom.row);
+    drawHexShape(x, y, hexSize * 0.92);
+    ctx.fillStyle = 'rgba(255, 255, 50, 0.2)';
+    ctx.fill();
+  }
+  if (lastMoveTo) {
+    const { x, y } = hexToPixel(lastMoveTo.col, lastMoveTo.row);
+    drawHexShape(x, y, hexSize * 0.92);
+    ctx.fillStyle = 'rgba(255, 255, 50, 0.25)';
+    ctx.fill();
+  }
+
+  // Draw pieces
+  for (const p of pieces) {
+    if (p.removed) continue;
+    drawPiece(p);
+  }
+
+  // Draw selected piece highlight
+  if (selectedPiece && !selectedPiece.removed) {
+    const { x, y } = hexToPixel(selectedPiece.col, selectedPiece.row);
+    drawHexShape(x, y, hexSize * 0.92);
+    ctx.strokeStyle = '#ffd54f';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+
+  // Debug: draw coordinates on each cell
+  if (showCoords) {
+    const fontSize = Math.max(6, Math.floor(hexSize * 0.35));
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const [k, cell] of Object.entries(boardCells)) {
+      const { x, y } = hexToPixel(cell.col, cell.row);
+      // Background for readability
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      const tw = fontSize * 1.8;
+      const th = fontSize * 1.1;
+      ctx.fillRect(x - tw / 2, y - th / 2, tw, th);
+      // Coordinate text
+      ctx.fillStyle = '#fff';
+      ctx.fillText(`${cell.col},${cell.row}`, x, y);
+    }
+  }
+}
+
+function toggleCoords() {
+  showCoords = !showCoords;
+  document.getElementById('coordBtn').classList.toggle('active', showCoords);
+  drawBoard();
+}
+
+function drawPitchLines() {
+  // Draw continuous white football pitch markings on top of the hex grid.
+  // Lines are smooth and straight, like a real football pitch overlaid on the hexes.
+  const lineColor = 'rgba(255,255,255,0.65)';
+  const lineWidth = Math.max(1.5, hexSize * 0.08);
+  const hw = hexSize * Math.sqrt(3) / 2; // hex half-width (pointy-top)
+
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = lineWidth;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Reference points for the pitch boundary.
+  // Use even-row hex edges for left/right (even rows are further left/right on col 0/15).
+  // The drawn hex uses 0.92 scale, but pitch lines should be at full hex edges.
+  const leftX   = hexToPixel(0, 0).x - hw;
+  const rightX  = hexToPixel(15, 0).x + hw;
+  const topY    = hexToPixel(0, 0).y - hexSize * 0.75;
+  const bottomY = hexToPixel(0, 34).y + hexSize * 0.75;
+
+  // Midfield Y
+  const midY = hexToPixel(0, 17).y;
+
+  // Field center X (average of col 7 and col 8 on even row)
+  const centerX = (hexToPixel(7, 17).x + hexToPixel(8, 17).x) / 2;
+
+  // --- 1. Pitch outline (touchlines + goal lines) ---
+  ctx.beginPath();
+  ctx.rect(leftX, topY, rightX - leftX, bottomY - topY);
+  ctx.stroke();
+
+  // --- 2. Halfway line ---
+  ctx.beginPath();
+  ctx.moveTo(leftX, midY);
+  ctx.lineTo(rightX, midY);
+  ctx.stroke();
+
+  // --- 3. Center circle ---
+  // Radius: approximately 3 hex-row-heights (covers rows 15-19 area)
+  const centerCircleRadius = hexSize * 1.5 * 2.5; // ~3.75 hexSizes
+  ctx.beginPath();
+  ctx.arc(centerX, midY, centerCircleRadius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // --- 4. Center spot ---
+  ctx.fillStyle = lineColor;
+  ctx.beginPath();
+  ctx.arc(centerX, midY, Math.max(2.5, hexSize * 0.12), 0, Math.PI * 2);
+  ctx.fill();
+
+  // --- 5. Penalty areas ---
+  // Top penalty area: cols 4-11, rows 0-7
+  // Left edge between cols 3 and 4, right edge between cols 11 and 12
+  // Bottom edge between rows 7 and 8
+  const penTopLeftX  = (hexToPixel(3, 0).x + hexToPixel(4, 0).x) / 2;
+  const penTopRightX = (hexToPixel(11, 0).x + hexToPixel(12, 0).x) / 2;
+  const penTopBottomY = (hexToPixel(0, 7).y + hexToPixel(0, 8).y) / 2;
+
+  // Top penalty area (open at top = goal line)
+  ctx.beginPath();
+  ctx.moveTo(penTopLeftX, topY);
+  ctx.lineTo(penTopLeftX, penTopBottomY);
+  ctx.lineTo(penTopRightX, penTopBottomY);
+  ctx.lineTo(penTopRightX, topY);
+  ctx.stroke();
+
+  // Bottom penalty area: cols 4-11, rows 27-34
+  const penBotLeftX  = penTopLeftX;
+  const penBotRightX = penTopRightX;
+  const penBotTopY = (hexToPixel(0, 26).y + hexToPixel(0, 27).y) / 2;
+
+  // Bottom penalty area (open at bottom = goal line)
+  ctx.beginPath();
+  ctx.moveTo(penBotLeftX, bottomY);
+  ctx.lineTo(penBotLeftX, penBotTopY);
+  ctx.lineTo(penBotRightX, penBotTopY);
+  ctx.lineTo(penBotRightX, bottomY);
+  ctx.stroke();
+
+  // --- 6. Goal areas (6-yard box) ---
+  // Top goal area: cols 6-9, rows 0-4
+  const goalTopLeftX  = (hexToPixel(5, 0).x + hexToPixel(6, 0).x) / 2;
+  const goalTopRightX = (hexToPixel(9, 0).x + hexToPixel(10, 0).x) / 2;
+  const goalTopBottomY = (hexToPixel(0, 4).y + hexToPixel(0, 5).y) / 2;
+
+  ctx.beginPath();
+  ctx.moveTo(goalTopLeftX, topY);
+  ctx.lineTo(goalTopLeftX, goalTopBottomY);
+  ctx.lineTo(goalTopRightX, goalTopBottomY);
+  ctx.lineTo(goalTopRightX, topY);
+  ctx.stroke();
+
+  // Bottom goal area: cols 6-9, rows 30-34
+  const goalBotLeftX  = goalTopLeftX;
+  const goalBotRightX = goalTopRightX;
+  const goalBotTopY = (hexToPixel(0, 29).y + hexToPixel(0, 30).y) / 2;
+
+  ctx.beginPath();
+  ctx.moveTo(goalBotLeftX, bottomY);
+  ctx.lineTo(goalBotLeftX, goalBotTopY);
+  ctx.lineTo(goalBotRightX, goalBotTopY);
+  ctx.lineTo(goalBotRightX, bottomY);
+  ctx.stroke();
+
+  // --- 7. Penalty spots ---
+  // Top penalty spot: around row 5, center of field
+  const penSpotTopY = hexToPixel(0, 5).y;
+  ctx.fillStyle = lineColor;
+  ctx.beginPath();
+  ctx.arc(centerX, penSpotTopY, Math.max(2.5, hexSize * 0.12), 0, Math.PI * 2);
+  ctx.fill();
+
+  // Bottom penalty spot: around row 29
+  const penSpotBotY = hexToPixel(0, 29).y;
+  ctx.beginPath();
+  ctx.arc(centerX, penSpotBotY, Math.max(2.5, hexSize * 0.12), 0, Math.PI * 2);
+  ctx.fill();
+
+  // --- 8. Penalty arcs ---
+  // Semi-circle outside each penalty area, centered on the penalty spot.
+  // Uses the same radius as the center circle (standard football rule: 9.15m from spot).
+  const penArcRadius = centerCircleRadius;
+
+  // Top penalty arc: the arc portion that lies BELOW the penalty area bottom edge.
+  // Circle parametric: y = penSpotTopY + r * sin(angle)
+  // At intersection with penTopBottomY: sin(angle) = (penTopBottomY - penSpotTopY) / r
+  const topDy = (penTopBottomY - penSpotTopY) / penArcRadius;
+  if (Math.abs(topDy) <= 1) {
+    const topArcAngle = Math.asin(topDy);
+    ctx.beginPath();
+    ctx.arc(centerX, penSpotTopY, penArcRadius, topArcAngle, Math.PI - topArcAngle);
+    ctx.stroke();
+  }
+
+  // Bottom penalty arc: the arc portion that lies ABOVE the penalty area top edge.
+  // At intersection with penBotTopY: sin(angle) = (penBotTopY - penSpotBotY) / r (negative)
+  const botDy = (penBotTopY - penSpotBotY) / penArcRadius;
+  if (Math.abs(botDy) <= 1) {
+    const botArcAngle = Math.asin(botDy); // negative angle (above center)
+    // We want the arc from (PI - botArcAngle) to (2*PI + botArcAngle), i.e., the upper portion
+    ctx.beginPath();
+    ctx.arc(centerX, penSpotBotY, penArcRadius, Math.PI - botArcAngle, 2 * Math.PI + botArcAngle);
+    ctx.stroke();
+  }
+
+  // --- 9. Corner arcs ---
+  const cornerRadius = hexSize * 1.2;
+  // Top-left corner
+  ctx.beginPath();
+  ctx.arc(leftX, topY, cornerRadius, 0, Math.PI / 2);
+  ctx.stroke();
+  // Top-right corner
+  ctx.beginPath();
+  ctx.arc(rightX, topY, cornerRadius, Math.PI / 2, Math.PI);
+  ctx.stroke();
+  // Bottom-left corner
+  ctx.beginPath();
+  ctx.arc(leftX, bottomY, cornerRadius, -Math.PI / 2, 0);
+  ctx.stroke();
+  // Bottom-right corner
+  ctx.beginPath();
+  ctx.arc(rightX, bottomY, cornerRadius, Math.PI, 3 * Math.PI / 2);
+  ctx.stroke();
+}
+
+function drawGoalPosts() {
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 3;
+  const hw = hexSize * Math.sqrt(3) / 2; // hex half-width for pointy-top
+
+  // Top goal frame around goal hexes (7,-1) and (8,-1)
+  const gtl = hexToPixel(7, -1);
+  const gtr = hexToPixel(8, -1);
+  ctx.beginPath();
+  ctx.moveTo(gtl.x - hw, gtl.y + hexSize * 0.5);
+  ctx.lineTo(gtl.x - hw, gtl.y - hexSize);
+  ctx.lineTo(gtr.x + hw, gtr.y - hexSize);
+  ctx.lineTo(gtr.x + hw, gtr.y + hexSize * 0.5);
+  ctx.stroke();
+
+  // Bottom goal frame around goal hexes (7,35) and (8,35)
+  const gbl = hexToPixel(7, 35);
+  const gbr = hexToPixel(8, 35);
+  ctx.beginPath();
+  ctx.moveTo(gbl.x - hw, gbl.y - hexSize * 0.5);
+  ctx.lineTo(gbl.x - hw, gbl.y + hexSize);
+  ctx.lineTo(gbr.x + hw, gbr.y + hexSize);
+  ctx.lineTo(gbr.x + hw, gbr.y - hexSize * 0.5);
+  ctx.stroke();
+
+  // "ORIGIN GOAL" text near goals
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.font = `bold ${Math.floor(hexSize * 0.55)}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const topCenter = hexToPixel(7.5, -1);
+  ctx.fillText('ORIGIN GOAL', topCenter.x, topCenter.y - hexSize * 1.3);
+  const botCenter = hexToPixel(7.5, 35);
+  ctx.fillText('ORIGIN GOAL', botCenter.x, botCenter.y + hexSize * 1.3);
+}
+
+function drawPiece(p) {
+  const { x, y } = hexToPixel(p.col, p.row);
+  const radius = hexSize * 0.55;
+
+  ctx.save();
+  // Rotate away team pieces 180° for face-to-face iPad play
+  if (p.team === 'away') {
+    ctx.translate(x, y);
+    ctx.rotate(Math.PI);
+    ctx.translate(-x, -y);
+  }
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath();
+  ctx.arc(x + 1.5, y + 1.5, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Piece body
+  const isHome = p.team === 'home';
+  const baseColor = isHome ? '#d32f2f' : '#1565c0';
+  const gradient = ctx.createRadialGradient(x - radius * 0.2, y - radius * 0.3, radius * 0.1, x, y, radius);
+  gradient.addColorStop(0, isHome ? '#ef5350' : '#42a5f5');
+  gradient.addColorStop(1, baseColor);
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Goalkeeper marker
+  if (p.isGK) {
+    ctx.fillStyle = '#ffd54f';
+    ctx.font = `bold ${Math.floor(radius * 1.1)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('G', x, y + 1);
+  } else {
+    // Player number
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${Math.floor(radius * 0.85)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.num || '', x, y + 1);
+  }
+
+  // Yellow card indicator
+  if (p.yellowCards > 0) {
+    ctx.fillStyle = '#ffd54f';
+    ctx.fillRect(x + radius * 0.4, y - radius * 0.9, radius * 0.4, radius * 0.55);
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(x + radius * 0.4, y - radius * 0.9, radius * 0.4, radius * 0.55);
+  }
+
+  ctx.restore();
+}
+
+// ============= Movement / BFS =============
+function getReachableHexes(piece, steps) {
+  // BFS: find all hexes reachable in exactly `steps` steps
+  // Cannot pass through occupied hexes (except final step for tackle/chain)
+  // Blocking rule: cannot move past adjacent opponent
+  const team = piece.team;
+  const startKey = hexKey(piece.col, piece.row);
+
+  // BFS with step tracking: Map of hexKey -> Set of remaining steps
+  // frontier: set of (hexKey, stepsRemaining)
+  let frontier = new Map(); // key -> set of directions to get there
+  frontier.set(startKey, [null]);
+
+  for (let step = 0; step < steps; step++) {
+    const nextFrontier = new Map();
+    const isLastStep = step === steps - 1;
+
+    for (const [k] of frontier) {
+      const [c, r] = fromKey(k);
+      const neighbors = hexNeighbors(c, r);
+
+      for (const [nc, nr] of neighbors) {
+        const nk = hexKey(nc, nr);
+        const cell = boardCells[nk];
+        if (!cell) continue;
+
+        // Check blocking (正面防守): common neighbors with opponents
+        if (isBlockedByOpponent(c, r, nc, nr, team)) continue;
+
+        const occupant = getPieceAt(nc, nr);
+        if (!isLastStep) {
+          // Intermediate step: can't go to occupied hex
+          if (occupant) continue;
+          // Can't go to goal hexes as intermediate
+          if (cell.type === CELL_GOAL) continue;
+        } else {
+          // Final step: can go to opponent (tackle) or own piece (chain)
+          // But can't go to a removed piece spot or out of bounds
+          if (cell.type === CELL_GOAL) {
+            // Can only enter goal from goal_mouth
+            const fromCell = boardCells[hexKey(c, r)];
+            if (!fromCell || fromCell.type !== CELL_GOAL_MOUTH) continue;
+          }
+        }
+
+        // Can't land on same hex we started on for final step
+        if (isLastStep && nk === startKey) continue;
+
+        if (!nextFrontier.has(nk)) nextFrontier.set(nk, []);
+        nextFrontier.get(nk).push(k); // track path
+      }
+    }
+    frontier = nextFrontier;
+  }
+
+  // Remove start position from results
+  frontier.delete(startKey);
+  return frontier;
+}
+
+function isBlockedByOpponent(fromCol, fromRow, toCol, toRow, myTeam) {
+  // Two adjacent hexes share common neighbors
+  // If any common neighbor has an opponent piece, movement is blocked
+  const fromNeighbors = new Set(hexNeighbors(fromCol, fromRow).map(([c,r]) => hexKey(c,r)));
+  const toNeighbors = hexNeighbors(toCol, toRow);
+
+  for (const [nc, nr] of toNeighbors) {
+    const nk = hexKey(nc, nr);
+    if (nk === hexKey(fromCol, fromRow)) continue; // don't count origin
+    if (nk === hexKey(toCol, toRow)) continue;
+    if (!fromNeighbors.has(nk)) continue;
+    // Common neighbor found
+    const occupant = getPieceAt(nc, nr);
+    if (occupant && occupant.team !== myTeam) return true;
+  }
+  return false;
+}
+
+function canTackle(piece, targetCol, targetRow) {
+  const target = getPieceAt(targetCol, targetRow);
+  if (!target || target.team === piece.team) return false;
+
+  // Check tackling rules based on position and dice
+  const inOwnHalf = isInOwnHalf(piece.team, targetCol, targetRow) && !isMidfield(targetCol, targetRow);
+
+  if (inOwnHalf) {
+    // In own half (not midfield): can only tackle with defense dice
+    if (diceType !== 'def') return false;
+  }
+  // In opponent's half or midfield: either dice type works
+
+  // Goalkeeper can only tackle with defense dice
+  if (piece.isGK && diceType !== 'def') return false;
+
+  // Can't tackle on fast attack point in own half
+  const cell = boardCells[hexKey(targetCol, targetRow)];
+  if (cell && cell.type === CELL_FAST_ATTACK && isInOwnHalf(piece.team, targetCol, targetRow)) {
+    return false;
+  }
+
+  return true;
+}
+
+// ============= Game Logic =============
+function initPieces() {
+  pieces = [];
+  pieceIdCounter = 0;
+
+  // Formations for 16-col × 35-row grid
+  // Home team (bottom, rows 18-33): 4-4-2 style
+  const homeFormation = [
+    { col: 7, row: 32, isGK: true },  // GK
+    { col: 3, row: 29, isGK: false }, // LB
+    { col: 6, row: 29, isGK: false }, // CB
+    { col: 9, row: 29, isGK: false }, // CB
+    { col: 12, row: 29, isGK: false }, // RB
+    { col: 2, row: 25, isGK: false }, // LM
+    { col: 5, row: 25, isGK: false }, // CM
+    { col: 10, row: 25, isGK: false }, // CM
+    { col: 13, row: 25, isGK: false }, // RM
+    { col: 5, row: 21, isGK: false }, // ST
+    { col: 10, row: 21, isGK: false }, // ST
+  ];
+
+  // Away team (top, rows 1-16): 4-4-2 style
+  const awayFormation = [
+    { col: 8, row: 2, isGK: true },   // GK
+    { col: 3, row: 5, isGK: false },  // LB
+    { col: 6, row: 5, isGK: false },  // CB
+    { col: 9, row: 5, isGK: false },  // CB
+    { col: 12, row: 5, isGK: false }, // RB
+    { col: 2, row: 9, isGK: false },  // LM
+    { col: 5, row: 9, isGK: false },  // CM
+    { col: 10, row: 9, isGK: false }, // CM
+    { col: 13, row: 9, isGK: false }, // RM
+    { col: 5, row: 13, isGK: false }, // ST
+    { col: 10, row: 13, isGK: false }, // ST
+  ];
+
+  let num = 1;
+  homeFormation.forEach(f => {
+    pieces.push({
+      id: pieceIdCounter++, team: 'home', col: f.col, row: f.row,
+      isGK: f.isGK, yellowCards: 0, removed: false, num: f.isGK ? '' : num++
+    });
+  });
+  num = 1;
+  awayFormation.forEach(f => {
+    pieces.push({
+      id: pieceIdCounter++, team: 'away', col: f.col, row: f.row,
+      isGK: f.isGK, yellowCards: 0, removed: false, num: f.isGK ? '' : num++
+    });
+  });
+}
+
+function initDecks() {
+  decks.blue = shuffle(CARDS.blue.map(c => ({...c})));
+  decks.yellow = shuffle(CARDS.yellow.map(c => ({...c})));
+  decks.red = shuffle(CARDS.red.map(c => ({...c})));
+  discards = { blue: [], yellow: [], red: [] };
+}
+
+function drawCardFromDeck(color) {
+  if (decks[color].length === 0) {
+    decks[color] = shuffle(discards[color]);
+    discards[color] = [];
+  }
+  if (decks[color].length === 0) return null;
+  const card = decks[color].pop();
+  discards[color].push(card);
+  return card;
+}
+
+function startGame() {
+  buildBoard();
+  initPieces();
+  initDecks();
+  score = { home: 0, away: 0 };
+  skipNextTurn = { home: false, away: false };
+  historyStack = [];
+  currentTeam = Math.random() < 0.5 ? 'home' : 'away';
+  selectedPiece = null;
+  reachableHexes = new Set();
+  effectSelectMode = null;
+  lastMoveFrom = null;
+  lastMoveTo = null;
+  currentCard = null;
+  updateScore();
+  startTurn();
+}
+
+function startTurn() {
+  selectedPiece = null;
+  reachableHexes = new Set();
+  diceType = null;
+  diceValue = 0;
+  diceResultEl.textContent = '';
+  effectSelectMode = null;
+
+  // Check skip turn
+  if (skipNextTurn[currentTeam]) {
+    skipNextTurn[currentTeam] = false;
+    statusEl.textContent = teamName(currentTeam) + ' 停赛一轮';
+    setTimeout(() => {
+      currentTeam = otherTeam(currentTeam);
+      startTurn();
+    }, 1500);
+    return;
+  }
+
+  phase = PHASE.DICE_SELECT;
+  atkBtn.disabled = false;
+  defBtn.disabled = false;
+  statusEl.textContent = teamName(currentTeam) + ' — 选择骰子';
+  drawBoard();
+}
+
+function teamName(t) {
+  return t === 'home' ? '🔴 红方' : '🔵 蓝方';
+}
+
+function updateScore() {
+  document.querySelector('.home-score').textContent = score.home;
+  document.querySelector('.away-score').textContent = score.away;
+}
+
+function rollDice(type) {
+  if (phase !== PHASE.DICE_SELECT || animatingDice) return;
+  ensureAudio();
+  diceType = type;
+  atkBtn.disabled = true;
+  defBtn.disabled = true;
+  animatingDice = true;
+  playDiceRoll();
+
+  // Animate dice
+  let frame = 0;
+  const totalFrames = 15;
+  const interval = setInterval(() => {
+    const v = type === 'atk' ? Math.floor(Math.random() * 3) + 4 : Math.floor(Math.random() * 3) + 1;
+    diceResultEl.textContent = v;
+    diceResultEl.style.color = type === 'atk' ? '#ef5350' : '#42a5f5';
+    frame++;
+    if (frame >= totalFrames) {
+      clearInterval(interval);
+      diceValue = type === 'atk' ? Math.floor(Math.random() * 3) + 4 : Math.floor(Math.random() * 3) + 1;
+      diceResultEl.textContent = diceValue;
+      animatingDice = false;
+      phase = PHASE.PIECE_SELECT;
+      statusEl.textContent = teamName(currentTeam) + ' — 选择棋子移动 (' + diceValue + '步)';
+      drawBoard();
+    }
+  }, 60);
+}
+
+function handleCanvasClick(e) {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+  let cx, cy;
+  if (e.changedTouches) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+  else { cx = e.clientX; cy = e.clientY; }
+  const px = (cx - rect.left) * sx, py = (cy - rect.top) * sy;
+  const pos = pixelToHex(px, py);
+  if (!pos) return;
+
+  if (effectSelectMode) {
+    handleEffectSelect(pos.col, pos.row);
+    return;
+  }
+
+  if (phase === PHASE.PIECE_SELECT) {
+    handlePieceSelect(pos.col, pos.row);
+  } else if (phase === PHASE.MOVE_SELECT) {
+    handleMoveSelect(pos.col, pos.row);
+  } else if (phase === PHASE.FAST_ATTACK_SELECT) {
+    handleFastAttackSelect(pos.col, pos.row);
+  }
+}
+
+function handlePieceSelect(col, row) {
+  const p = getPieceAt(col, row);
+  if (!p || p.team !== currentTeam) {
+    // Deselect
+    selectedPiece = null;
+    reachableHexes = new Set();
+    phase = PHASE.PIECE_SELECT;
+    drawBoard();
+    return;
+  }
+
+  playSelect();
+  selectedPiece = p;
+
+  // Calculate reachable hexes
+  const frontier = getReachableHexes(p, diceValue);
+  reachableHexes = new Set();
+
+  for (const [k] of frontier) {
+    const [c, r] = fromKey(k);
+    const occupant = getPieceAt(c, r);
+
+    if (occupant && occupant.team !== currentTeam) {
+      // Can we tackle?
+      if (canTackle(p, c, r)) {
+        reachableHexes.add(k);
+      }
+    } else if (occupant && occupant.team === currentTeam) {
+      // Rule 8: landing on own piece is allowed (will chain)
+      reachableHexes.add(k);
+    } else {
+      // Empty hex
+      reachableHexes.add(k);
+    }
+  }
+
+  phase = PHASE.MOVE_SELECT;
+  statusEl.textContent = teamName(currentTeam) + ' — 选择目标位置';
+  drawBoard();
+}
+
+function handleMoveSelect(col, row) {
+  const k = hexKey(col, row);
+
+  // Allow re-selecting another piece
+  const p = getPieceAt(col, row);
+  if (p && p.team === currentTeam && !reachableHexes.has(k)) {
+    handlePieceSelect(col, row);
+    return;
+  }
+  if (p && p.team === currentTeam && p.id === selectedPiece.id) {
+    // Deselect
+    selectedPiece = null;
+    reachableHexes = new Set();
+    phase = PHASE.PIECE_SELECT;
+    drawBoard();
+    return;
+  }
+
+  if (!reachableHexes.has(k)) return;
+
+  // Execute move
+  executeMainMove(col, row);
+}
+
+function executeMainMove(destCol, destRow) {
+  const piece = selectedPiece;
+  const fromCol = piece.col, fromRow = piece.row;
+
+  // Save state for undo
+  saveHistory();
+
+  lastMoveFrom = { col: fromCol, row: fromRow };
+  lastMoveTo = { col: destCol, row: destRow };
+
+  const occupant = getPieceAt(destCol, destRow);
+
+  if (occupant && occupant.team !== currentTeam) {
+    // Tackle!
+    executeTackle(piece, occupant, destCol, destRow);
+  } else if (occupant && occupant.team === currentTeam) {
+    // Rule 8: chain step - find forward direction and continue
+    movePiece(piece, destCol, destRow);
+    resolveChainStep(piece, fromCol, fromRow, destCol, destRow);
+  } else {
+    // Normal move
+    movePiece(piece, destCol, destRow);
+    playMove();
+    resolveLanding(piece, destCol, destRow, false);
+  }
+}
+
+function movePiece(piece, col, row) {
+  piece.col = col;
+  piece.row = row;
+}
+
+function executeTackle(attacker, defender, col, row) {
+  playTackle();
+
+  const cell = boardCells[hexKey(col, row)];
+  const wasOnSpecialSpot = cell && (cell.type === CELL_RED || cell.type === CELL_YELLOW || cell.type === CELL_BLUE);
+
+  // Move attacker to position
+  movePiece(attacker, col, row);
+
+  // Send defender back to dark green in their half
+  const halfFilter = teamHalf(defender.team);
+  const greenSpots = getDarkGreenSpots(halfFilter);
+
+  if (greenSpots.length > 0) {
+    // Place defender on a random green spot for now (could let player choose)
+    const spot = greenSpots[Math.floor(Math.random() * greenSpots.length)];
+    movePiece(defender, spot.col, spot.row);
+  }
+
+  selectedPiece = null;
+  reachableHexes = new Set();
+
+  // Special position tackle: tackling on event hex triggers card for tackler
+  if (wasOnSpecialSpot && isInOpponentHalf(attacker.team, col, row)) {
+    const cardColor = cell.type === CELL_RED ? 'red' : cell.type === CELL_YELLOW ? 'yellow' : 'blue';
+    setTimeout(() => triggerCardDraw(cardColor, attacker), 400);
+  } else {
+    endTurn();
+  }
+
+  drawBoard();
+}
+
+function resolveChainStep(piece, prevCol, prevRow, landCol, landRow) {
+  // Determine "forward" direction
+  const dc = landCol - prevCol;
+  const dr = landRow - prevRow;
+
+  // For hex grid, find the neighbor of (landCol, landRow) that is most in the direction (dc, dr)
+  const neighbors = hexNeighbors(landCol, landRow);
+  let bestNeighbor = null;
+  let bestDot = -Infinity;
+
+  for (const [nc, nr] of neighbors) {
+    const cell = boardCells[hexKey(nc, nr)];
+    if (!cell) continue;
+    // Dot product with movement direction
+    const ndc = nc - landCol;
+    const ndr = nr - landRow;
+    const dot = ndc * dc + ndr * dr;
+    if (dot > bestDot) {
+      bestDot = dot;
+      bestNeighbor = { col: nc, row: nr };
+    }
+  }
+
+  if (!bestNeighbor) {
+    playMove();
+    endTurn();
+    drawBoard();
+    return;
+  }
+
+  const nc = bestNeighbor.col, nr = bestNeighbor.row;
+  const nextOccupant = getPieceAt(nc, nr);
+
+  if (nextOccupant && nextOccupant.team !== piece.team) {
+    // Chain tackle
+    if (canTackle(piece, nc, nr)) {
+      movePiece(piece, nc, nr);
+      const halfFilter = teamHalf(nextOccupant.team);
+      const greenSpots = getDarkGreenSpots(halfFilter);
+      if (greenSpots.length > 0) {
+        const spot = greenSpots[Math.floor(Math.random() * greenSpots.length)];
+        movePiece(nextOccupant, spot.col, spot.row);
+      }
+      playTackle();
+      resolveLanding(piece, nc, nr, true);
+    } else {
+      playMove();
+      resolveLanding(piece, landCol, landRow, false);
+    }
+  } else if (nextOccupant && nextOccupant.team === piece.team) {
+    // Chain again!
+    movePiece(piece, nc, nr);
+    resolveChainStep(piece, landCol, landRow, nc, nr);
+  } else {
+    // Move forward one
+    movePiece(piece, nc, nr);
+    playMove();
+    resolveLanding(piece, nc, nr, true);
+  }
+}
+
+function resolveLanding(piece, col, row, fromChain) {
+  selectedPiece = null;
+  reachableHexes = new Set();
+
+  const cell = boardCells[hexKey(col, row)];
+  if (!cell) { endTurn(); drawBoard(); return; }
+
+  // Check for goal
+  if (cell.type === CELL_GOAL) {
+    scoreGoal(piece, col, row);
+    return;
+  }
+
+  // Check for fast attack
+  if (cell.type === CELL_FAST_ATTACK) {
+    handleFastAttackLanding(piece);
+    return;
+  }
+
+  // Check for event card (only in opponent's half)
+  if ((cell.type === CELL_RED || cell.type === CELL_YELLOW || cell.type === CELL_BLUE)
+      && isInOpponentHalf(piece.team, col, row)) {
+    const cardColor = cell.type === CELL_RED ? 'red' : cell.type === CELL_YELLOW ? 'yellow' : 'blue';
+    setTimeout(() => triggerCardDraw(cardColor, piece), 300);
+    drawBoard();
+    return;
+  }
+
+  endTurn();
+  drawBoard();
+}
+
+function scoreGoal(piece, col, row) {
+  // Determine who scores: piece entering opponent's goal = scoring team
+  const cell = boardCells[hexKey(col, row)];
+  let scoringTeam;
+  if (cell.half === 'away_goal') {
+    scoringTeam = 'home'; // Home attacks towards away goal (top)
+  } else {
+    scoringTeam = 'away'; // Away attacks towards home goal (bottom)
+  }
+  score[scoringTeam]++;
+
+  updateScore();
+  playGoal();
+  playWhistle();
+
+  // Move piece back to a green spot (rules say no formation reset after goal)
+  const greenSpots = getDarkGreenSpots(teamHalf(piece.team));
+  if (greenSpots.length > 0) {
+    const spot = greenSpots[Math.floor(Math.random() * greenSpots.length)];
+    movePiece(piece, spot.col, spot.row);
+  }
+
+  statusEl.textContent = '⚽ 进球！' + teamName(scoringTeam) + ' 得分！';
+  phase = PHASE.GOAL_SCORED;
+  drawBoard();
+
+  setTimeout(() => {
+    // Continue play - other team gets ball (next turn)
+    currentTeam = otherTeam(currentTeam);
+    startTurn();
+  }, 2000);
+}
+
+function handleFastAttackLanding(piece) {
+  // Must jump to another fast attack point (unless all occupied by own team)
+  const others = getOtherFastAttackPoints(piece.col, piece.row);
+  const available = others.filter(p => {
+    const occupant = getPieceAt(p.col, p.row);
+    return !occupant || occupant.team !== piece.team;
+  });
+
+  if (available.length === 0) {
+    // All occupied by own team - stay put
+    endTurn();
+    drawBoard();
+    return;
+  }
+
+  // Let player choose which fast attack point to jump to
+  phase = PHASE.FAST_ATTACK_SELECT;
+  reachableHexes = new Set(available.map(p => hexKey(p.col, p.row)));
+  statusEl.textContent = teamName(currentTeam) + ' — 选择快攻跳跃目标';
+  playBounce();
+  drawBoard();
+}
+
+function handleFastAttackSelect(col, row) {
+  const k = hexKey(col, row);
+  if (!reachableHexes.has(k)) return;
+
+  const piece = pieces.find(p => !p.removed && p.team === currentTeam &&
+    FAST_ATTACK_POINTS.some(fp => fp.col === p.col && fp.row === p.row));
+  if (!piece) return;
+
+  const occupant = getPieceAt(col, row);
+  reachableHexes = new Set();
+
+  if (occupant && occupant.team !== piece.team) {
+    // Can tackle from opponent's half fast attack point
+    if (isInOpponentHalf(piece.team, piece.col, piece.row) || isInOpponentHalf(piece.team, col, row)) {
+      const halfFilter = teamHalf(occupant.team);
+      const greenSpots = getDarkGreenSpots(halfFilter);
+      if (greenSpots.length > 0) {
+        const spot = greenSpots[Math.floor(Math.random() * greenSpots.length)];
+        movePiece(occupant, spot.col, spot.row);
+      }
+      playTackle();
+    }
+  }
+
+  movePiece(piece, col, row);
+  resolveLanding(piece, col, row, false);
+}
+
+// ============= Card System =============
+function triggerCardDraw(color, triggerPiece) {
+  const card = drawCardFromDeck(color);
+  if (!card) { endTurn(); drawBoard(); return; }
+
+  currentCard = card;
+  playCardFlip();
+  showCard(card, color, () => {
+    applyCardEffect(card, triggerPiece);
+  });
+}
+
+function showCard(card, color, callback) {
+  const overlay = document.getElementById('cardOverlay');
+  const box = document.getElementById('cardBox');
+  const stripe = document.getElementById('cardStripe');
+  const nameEl = document.getElementById('cardName');
+  const nameEnEl = document.getElementById('cardNameEn');
+  const descEl = document.getElementById('cardDesc');
+
+  const colors = { red: '#d32f2f', yellow: '#f9a825', blue: '#1976d2' };
+  const bgColors = { red: '#3a1a1a', yellow: '#3a3010', blue: '#1a2a3a' };
+  box.style.background = bgColors[color] || '#2a3a2a';
+  stripe.style.background = colors[color] || '#888';
+  nameEl.textContent = card.name;
+  nameEnEl.textContent = card.nameEn;
+  descEl.textContent = card.desc;
+
+  cardResolveCallback = callback;
+  overlay.classList.add('active');
+  phase = PHASE.CARD_SHOWN;
+}
+
+function closeCard() {
+  document.getElementById('cardOverlay').classList.remove('active');
+  if (cardResolveCallback) {
+    const cb = cardResolveCallback;
+    cardResolveCallback = null;
+    cb();
+  }
+}
+
+function applyCardEffect(card, triggerPiece) {
+  const team = currentTeam;
+  const opponent = otherTeam(team);
+
+  switch (card.effect) {
+    case 'reward_steps':
+      startEffectMoveOwn(team, card.value);
+      break;
+    case 'move_opponent':
+      startEffectMoveOpponent(team, card.value);
+      break;
+    case 'opponent_moves_you':
+      startEffectMoveOwn(opponent, card.value, team); // opponent moves current team's piece
+      break;
+    case 'reward_opponent':
+      startEffectMoveOwn(opponent, card.value);
+      break;
+    case 'yellow_card_self':
+      applyYellowCard(team);
+      endTurn(); drawBoard();
+      break;
+    case 'yellow_card_opponent':
+      applyYellowCard(opponent);
+      endTurn(); drawBoard();
+      break;
+    case 'red_card_self':
+      startRedCardSelect(team);
+      break;
+    case 'red_card_opponent':
+      startRedCardSelect(opponent);
+      break;
+    case 'place_own_friendly_green':
+      startPlaceOnGreen(team, teamHalf(team));
+      break;
+    case 'place_own_any_green':
+      startPlaceOnGreen(team, 'any');
+      break;
+    case 'place_own_opponent_green':
+      startPlaceOnGreen(team, teamHalf(opponent));
+      break;
+    case 'opponent_place_in_your_half':
+      startPlaceOnGreen(opponent, teamHalf(team));
+      break;
+    case 'opponent_place_any_green':
+      startPlaceOnGreen(opponent, 'any');
+      break;
+    case 'move_opponent_to_green':
+      startMoveOpponentToGreen(team);
+      break;
+    case 'penalty':
+      startPenalty(team);
+      break;
+    case 'penalty_opponent':
+      startPenalty(opponent);
+      break;
+    case 'skip_turn':
+      skipNextTurn[team] = true;
+      statusEl.textContent = teamName(team) + ' 下一轮停赛';
+      setTimeout(() => { endTurn(); drawBoard(); }, 1000);
+      break;
+    case 'extra_roll':
+      statusEl.textContent = teamName(team) + ' 获得额外掷骰';
+      setTimeout(() => {
+        phase = PHASE.DICE_SELECT;
+        atkBtn.disabled = false;
+        defBtn.disabled = false;
+        statusEl.textContent = teamName(team) + ' — 额外回合，选择骰子';
+        drawBoard();
+      }, 500);
+      break;
+    case 'own_goal_check':
+      resolveOwnGoalCheck(team);
+      break;
+    case 'var_red_card':
+      resolveVarRedCard(team);
+      break;
+    case 'goalkeeper_goal_check':
+      resolveGoalkeeperGoal(team);
+      break;
+    case 'var_cancel_goal':
+      resolveVarCancelGoal(team);
+      break;
+    case 'var_penalty':
+      resolveVarPenalty(team);
+      break;
+    case 'indirect_free_kick':
+      resolveIndirectFreeKick(team);
+      break;
+    case 'two_players_move':
+      startTwoPlayersMove(team, card.value);
+      break;
+    default:
+      endTurn(); drawBoard();
+  }
+}
+
+// Card effect: move own piece N steps
+function startEffectMoveOwn(selectingTeam, steps, targetTeam) {
+  // selectingTeam chooses, targetTeam's piece gets moved (default = selectingTeam)
+  const tTeam = targetTeam || selectingTeam;
+  phase = PHASE.CARD_EFFECT;
+
+  const teamPieces = pieces.filter(p => !p.removed && p.team === tTeam);
+  const validPieceHexes = new Set(teamPieces.map(p => hexKey(p.col, p.row)));
+
+  statusEl.textContent = teamName(selectingTeam) + ' — 选择要移动的棋子 (' + steps + '步)';
+  effectSelectMode = {
+    type: 'card_move_select_piece',
+    selectingTeam,
+    targetTeam: tTeam,
+    steps,
+    validHexes: validPieceHexes,
+    phase: 1, // 1 = select piece, 2 = select destination
+  };
+  drawBoard();
+}
+
+// Card effect: move opponent piece N steps
+function startEffectMoveOpponent(movingTeam, steps) {
+  // movingTeam moves opponent's piece
+  const opponent = otherTeam(movingTeam);
+  startEffectMoveOwn(movingTeam, steps, opponent);
+}
+
+function handleEffectSelect(col, row) {
+  if (!effectSelectMode) return;
+  const k = hexKey(col, row);
+
+  if (effectSelectMode.type === 'card_move_select_piece') {
+    if (effectSelectMode.phase === 1) {
+      // Select piece
+      if (!effectSelectMode.validHexes.has(k)) return;
+      const piece = getPieceAt(col, row);
+      if (!piece) return;
+
+      playSelect();
+      selectedPiece = piece;
+
+      // Calculate reachable hexes for card movement
+      // Card movement: must complete full steps, no dice type restriction for tackling
+      // ≤3 steps: can tackle anywhere. >3 steps: only in opponent half
+      const steps = effectSelectMode.steps;
+      const frontier = getReachableHexes(piece, steps);
+      const validDests = new Set();
+
+      for (const [dk] of frontier) {
+        const [dc, dr] = fromKey(dk);
+        const occupant = getPieceAt(dc, dr);
+        if (occupant && occupant.team !== piece.team) {
+          // Card tackle rules
+          if (steps <= 3 || isInOpponentHalf(piece.team, dc, dr)) {
+            validDests.add(dk);
+          }
+        } else if (occupant && occupant.team === piece.team) {
+          validDests.add(dk); // chain
+        } else {
+          validDests.add(dk);
+        }
+      }
+
+      effectSelectMode.phase = 2;
+      effectSelectMode.validHexes = validDests;
+      effectSelectMode.piece = piece;
+      statusEl.textContent = teamName(effectSelectMode.selectingTeam) + ' — 选择目标位置 (' + steps + '步)';
+      drawBoard();
+    } else if (effectSelectMode.phase === 2) {
+      // Select destination
+      if (!effectSelectMode.validHexes.has(k)) {
+        // Allow re-selecting piece
+        const piece = getPieceAt(col, row);
+        if (piece && piece.team === effectSelectMode.targetTeam) {
+          effectSelectMode.phase = 1;
+          const teamPieces = pieces.filter(p => !p.removed && p.team === effectSelectMode.targetTeam);
+          effectSelectMode.validHexes = new Set(teamPieces.map(p => hexKey(p.col, p.row)));
+          selectedPiece = null;
+          drawBoard();
+          handleEffectSelect(col, row);
+        }
+        return;
+      }
+
+      const piece = effectSelectMode.piece;
+      const occupant = getPieceAt(col, row);
+
+      if (occupant && occupant.team !== piece.team) {
+        // Tackle
+        const halfFilter = teamHalf(occupant.team);
+        const greenSpots = getDarkGreenSpots(halfFilter);
+        if (greenSpots.length > 0) {
+          const spot = greenSpots[Math.floor(Math.random() * greenSpots.length)];
+          movePiece(occupant, spot.col, spot.row);
+        }
+        playTackle();
+      } else if (occupant && occupant.team === piece.team) {
+        // For simplicity, just place on that hex (chain handled separately)
+      }
+
+      movePiece(piece, col, row);
+      playMove();
+      selectedPiece = null;
+      effectSelectMode = null;
+
+      // Check if landing triggers something
+      const cell = boardCells[hexKey(col, row)];
+      if (cell && cell.type === CELL_FAST_ATTACK) {
+        handleFastAttackLanding(piece);
+      } else if (cell && cell.type === CELL_GOAL) {
+        scoreGoal(piece, col, row);
+      } else {
+        endTurn();
+        drawBoard();
+      }
+    }
+  } else if (effectSelectMode.type === 'place_on_green') {
+    if (!effectSelectMode.validHexes.has(k)) return;
+
+    const piece = effectSelectMode.piece;
+    if (piece) {
+      movePiece(piece, col, row);
+      playMove();
+    }
+    selectedPiece = null;
+    effectSelectMode = null;
+    document.getElementById('placementOverlay').classList.remove('active');
+    endTurn();
+    drawBoard();
+  } else if (effectSelectMode.type === 'select_piece_for_place') {
+    if (!effectSelectMode.validHexes.has(k)) return;
+    const piece = getPieceAt(col, row);
+    if (!piece) return;
+
+    playSelect();
+    // Now select destination green
+    const greenSpots = getGreenSpots(effectSelectMode.greenHalf);
+    const validGreenHexes = new Set(greenSpots.map(s => hexKey(s.col, s.row)));
+
+    effectSelectMode = {
+      type: 'place_on_green',
+      piece,
+      validHexes: validGreenHexes,
+    };
+    document.getElementById('placementMsg').textContent = '选择目标绿色点位';
+    statusEl.textContent = '选择目标绿色点位';
+    drawBoard();
+  } else if (effectSelectMode.type === 'red_card_select') {
+    if (!effectSelectMode.validHexes.has(k)) return;
+    const piece = getPieceAt(col, row);
+    if (!piece) return;
+
+    piece.removed = true;
+    playNegative();
+    statusEl.textContent = teamName(piece.team) + ' 一名球员被红牌罚下！';
+    effectSelectMode = null;
+    setTimeout(() => { endTurn(); drawBoard(); }, 1000);
+    drawBoard();
+  } else if (effectSelectMode.type === 'two_players_first') {
+    if (!effectSelectMode.validHexes.has(k)) return;
+    const piece = getPieceAt(col, row);
+    if (!piece) return;
+
+    playSelect();
+    selectedPiece = piece;
+    const steps = effectSelectMode.steps;
+    const frontier = getReachableHexes(piece, steps);
+    const validDests = new Set();
+    for (const [dk] of frontier) {
+      const [dc, dr] = fromKey(dk);
+      const occupant = getPieceAt(dc, dr);
+      if (!occupant || occupant.team !== piece.team) validDests.add(dk);
+    }
+
+    effectSelectMode = {
+      type: 'two_players_first_dest',
+      piece,
+      team: effectSelectMode.team,
+      steps,
+      validHexes: validDests,
+    };
+    statusEl.textContent = '选择第一个球员的目标位置';
+    drawBoard();
+  } else if (effectSelectMode.type === 'two_players_first_dest') {
+    if (!effectSelectMode.validHexes.has(k)) return;
+    const piece = effectSelectMode.piece;
+    movePiece(piece, col, row);
+    playMove();
+
+    // Now select second player
+    const team = effectSelectMode.team;
+    const steps = effectSelectMode.steps;
+    const teamPieces = pieces.filter(p => !p.removed && p.team === team && p.id !== piece.id);
+    const validPieceHexes = new Set(teamPieces.map(p => hexKey(p.col, p.row)));
+
+    selectedPiece = null;
+    effectSelectMode = {
+      type: 'two_players_second',
+      team,
+      steps,
+      validHexes: validPieceHexes,
+      firstPiece: piece,
+    };
+    statusEl.textContent = '选择第二个球员';
+    drawBoard();
+  } else if (effectSelectMode.type === 'two_players_second') {
+    if (!effectSelectMode.validHexes.has(k)) return;
+    const piece = getPieceAt(col, row);
+    if (!piece) return;
+
+    playSelect();
+    selectedPiece = piece;
+    const steps = effectSelectMode.steps;
+    const frontier = getReachableHexes(piece, steps);
+    const validDests = new Set();
+    for (const [dk] of frontier) {
+      const [dc, dr] = fromKey(dk);
+      const occupant = getPieceAt(dc, dr);
+      if (!occupant || occupant.team !== piece.team) validDests.add(dk);
+    }
+
+    effectSelectMode = {
+      type: 'two_players_second_dest',
+      piece,
+      steps,
+      validHexes: validDests,
+    };
+    statusEl.textContent = '选择第二个球员的目标位置';
+    drawBoard();
+  } else if (effectSelectMode.type === 'two_players_second_dest') {
+    if (!effectSelectMode.validHexes.has(k)) return;
+    const piece = effectSelectMode.piece;
+    movePiece(piece, col, row);
+    playMove();
+    selectedPiece = null;
+    effectSelectMode = null;
+    endTurn();
+    drawBoard();
+  }
+}
+
+function startPlaceOnGreen(team, halfFilter) {
+  // First select which piece to move, then where to place it
+  const teamPieces = pieces.filter(p => !p.removed && p.team === team);
+  const validPieceHexes = new Set(teamPieces.map(p => hexKey(p.col, p.row)));
+
+  effectSelectMode = {
+    type: 'select_piece_for_place',
+    team,
+    greenHalf: halfFilter,
+    validHexes: validPieceHexes,
+  };
+
+  document.getElementById('placementMsg').textContent = teamName(team) + ' — 选择要移动的棋子';
+  document.getElementById('placementOverlay').classList.add('active');
+  statusEl.textContent = teamName(team) + ' — 选择要移动的棋子';
+  drawBoard();
+}
+
+function startMoveOpponentToGreen(team) {
+  const opponent = otherTeam(team);
+  const opPieces = pieces.filter(p => !p.removed && p.team === opponent);
+  const validPieceHexes = new Set(opPieces.map(p => hexKey(p.col, p.row)));
+
+  effectSelectMode = {
+    type: 'select_piece_for_place',
+    team: opponent,
+    greenHalf: 'any',
+    validHexes: validPieceHexes,
+  };
+
+  document.getElementById('placementMsg').textContent = teamName(team) + ' — 选择对手要移动的棋子';
+  document.getElementById('placementOverlay').classList.add('active');
+  statusEl.textContent = teamName(team) + ' — 选择对手棋子移至绿色点位';
+  drawBoard();
+}
+
+function startRedCardSelect(team) {
+  // Select a non-GK piece to remove
+  const teamPieces = pieces.filter(p => !p.removed && p.team === team && !p.isGK);
+  if (teamPieces.length === 0) { endTurn(); drawBoard(); return; }
+
+  const validHexes = new Set(teamPieces.map(p => hexKey(p.col, p.row)));
+  effectSelectMode = {
+    type: 'red_card_select',
+    team,
+    validHexes,
+  };
+  statusEl.textContent = '选择 ' + teamName(team) + ' 一名球员罚下（非守门员）';
+  drawBoard();
+}
+
+function applyYellowCard(team) {
+  // Apply to a random non-GK piece of that team
+  const teamPieces = pieces.filter(p => !p.removed && p.team === team && !p.isGK);
+  if (teamPieces.length === 0) return;
+  const target = teamPieces[Math.floor(Math.random() * teamPieces.length)];
+  target.yellowCards++;
+  if (target.yellowCards >= 2) {
+    target.removed = true;
+    statusEl.textContent = teamName(team) + ' 球员两黄变红被罚下！';
+    playNegative();
+  } else {
+    statusEl.textContent = teamName(team) + ' 球员获得黄牌警告';
+  }
+}
+
+function startTwoPlayersMove(team, steps) {
+  const teamPieces = pieces.filter(p => !p.removed && p.team === team);
+  const validPieceHexes = new Set(teamPieces.map(p => hexKey(p.col, p.row)));
+
+  effectSelectMode = {
+    type: 'two_players_first',
+    team,
+    steps,
+    validHexes: validPieceHexes,
+  };
+  statusEl.textContent = teamName(team) + ' — 选择第一个球员移动' + steps + '步';
+  drawBoard();
+}
+
+// ============= Special Card Effects =============
+function resolveOwnGoalCheck(team) {
+  // Opponent rolls dice, if result is 4, own goal
+  const val = Math.floor(Math.random() * 6) + 1;
+  if (val === 4) {
+    const opponent = otherTeam(team);
+    score[opponent]++;
+    updateScore();
+    playGoal();
+    statusEl.textContent = '乌龙球！掷出 ' + val + '，' + teamName(team) + ' 自摆乌龙！';
+    setTimeout(() => { endTurn(); drawBoard(); }, 2000);
+  } else {
+    statusEl.textContent = '掷出 ' + val + '，未触发乌龙球';
+    setTimeout(() => { endTurn(); drawBoard(); }, 1500);
+  }
+}
+
+function resolveVarRedCard(team) {
+  const val = Math.floor(Math.random() * 6) + 1;
+  if (val === 6) {
+    statusEl.textContent = 'VAR判定！掷出6，对手一人被罚下！';
+    setTimeout(() => startRedCardSelect(otherTeam(team)), 1500);
+  } else {
+    statusEl.textContent = 'VAR判定：掷出 ' + val + '，未触发红牌';
+    setTimeout(() => { endTurn(); drawBoard(); }, 1500);
+  }
+}
+
+function resolveGoalkeeperGoal(team) {
+  const val = Math.floor(Math.random() * 6) + 1;
+  if (val === 6) {
+    score[team]++;
+    updateScore();
+    playGoal();
+    statusEl.textContent = '门将进球！掷出6，' + teamName(team) + ' 得分！';
+    setTimeout(() => { endTurn(); drawBoard(); }, 2000);
+  } else {
+    statusEl.textContent = '掷出 ' + val + '，门将未能进球';
+    setTimeout(() => { endTurn(); drawBoard(); }, 1500);
+  }
+}
+
+function resolveVarCancelGoal(team) {
+  const val = Math.floor(Math.random() * 6) + 1;
+  const opponent = otherTeam(team);
+  if (val === 6 && score[opponent] > 0) {
+    score[opponent]--;
+    updateScore();
+    playWhistle();
+    statusEl.textContent = 'VAR取消进球！掷出6，' + teamName(opponent) + ' 被吹掉一个进球！';
+    setTimeout(() => { endTurn(); drawBoard(); }, 2000);
+  } else {
+    const reason = val !== 6 ? '掷出 ' + val : '对手尚未进球';
+    statusEl.textContent = 'VAR判定：' + reason + '，未取消进球';
+    setTimeout(() => { endTurn(); drawBoard(); }, 1500);
+  }
+}
+
+function resolveVarPenalty(team) {
+  const val = Math.floor(Math.random() * 6) + 1;
+  if (val > 4) {
+    statusEl.textContent = 'VAR判罚！掷出 ' + val + '，获得点球！';
+    setTimeout(() => startPenalty(team), 1500);
+  } else {
+    statusEl.textContent = '掷出 ' + val + '，未获得点球';
+    setTimeout(() => { endTurn(); drawBoard(); }, 1500);
+  }
+}
+
+function resolveIndirectFreeKick(team) {
+  const val = Math.floor(Math.random() * 6) + 1;
+  if (val > 4) {
+    statusEl.textContent = '间接任意球：掷出 ' + val + '，可以走 ' + val + ' 步！';
+    setTimeout(() => startEffectMoveOwn(team, val), 1000);
+  } else {
+    statusEl.textContent = '间接任意球：掷出 ' + val + '，未达标';
+    setTimeout(() => { endTurn(); drawBoard(); }, 1500);
+  }
+}
+
+// ============= Penalty System =============
+let penaltyTeam = null;
+let penaltyCallback = null;
+
+function startPenalty(team) {
+  penaltyTeam = team;
+  const overlay = document.getElementById('penaltyOverlay');
+  document.getElementById('penaltyInfo').textContent = teamName(team) + ' 主罚点球';
+  document.getElementById('penaltyAtkDice').textContent = '?';
+  document.getElementById('penaltyDefDice').textContent = '?';
+  document.getElementById('penaltyResult').textContent = '';
+  document.getElementById('penaltyRollBtn').style.display = '';
+  document.getElementById('penaltyCloseBtn').style.display = 'none';
+  overlay.classList.add('active');
+  phase = PHASE.PENALTY;
+}
+
+function rollPenalty() {
+  document.getElementById('penaltyRollBtn').style.display = 'none';
+  playDiceRoll();
+
+  let frame = 0;
+  const interval = setInterval(() => {
+    document.getElementById('penaltyAtkDice').textContent = Math.floor(Math.random() * 3) + 4;
+    document.getElementById('penaltyDefDice').textContent = Math.floor(Math.random() * 3) + 1;
+    frame++;
+    if (frame >= 15) {
+      clearInterval(interval);
+      const atkVal = Math.floor(Math.random() * 3) + 4;
+      const defVal = Math.floor(Math.random() * 3) + 1;
+      document.getElementById('penaltyAtkDice').textContent = atkVal;
+      document.getElementById('penaltyDefDice').textContent = defVal;
+
+      const resultEl = document.getElementById('penaltyResult');
+      if (atkVal >= defVal) {
+        score[penaltyTeam]++;
+        updateScore();
+        playGoal();
+        resultEl.textContent = '⚽ 进球！' + atkVal + ' ≥ ' + defVal;
+        resultEl.style.color = '#4caf50';
+      } else {
+        resultEl.textContent = '扑救成功！' + atkVal + ' < ' + defVal;
+        resultEl.style.color = '#ef5350';
+        playNegative();
+      }
+      document.getElementById('penaltyCloseBtn').style.display = '';
+    }
+  }, 60);
+}
+
+function closePenalty() {
+  document.getElementById('penaltyOverlay').classList.remove('active');
+  endTurn();
+  drawBoard();
+}
+
+// ============= History / Undo =============
+function saveHistory() {
+  historyStack.push({
+    pieces: pieces.map(p => ({...p})),
+    score: {...score},
+    currentTeam,
+    diceType,
+    diceValue,
+    skipNextTurn: {...skipNextTurn},
+    decksState: {
+      blue: decks.blue.length,
+      yellow: decks.yellow.length,
+      red: decks.red.length,
+    }
+  });
+}
+
+function undo() {
+  if (historyStack.length === 0) return;
+  playUndo();
+  const state = historyStack.pop();
+  pieces = state.pieces;
+  score = state.score;
+  currentTeam = state.currentTeam;
+  skipNextTurn = state.skipNextTurn;
+  selectedPiece = null;
+  reachableHexes = new Set();
+  effectSelectMode = null;
+  lastMoveFrom = null;
+  lastMoveTo = null;
+  document.getElementById('placementOverlay').classList.remove('active');
+  document.getElementById('cardOverlay').classList.remove('active');
+  document.getElementById('penaltyOverlay').classList.remove('active');
+  updateScore();
+  startTurn();
+}
+
+function endTurn() {
+  selectedPiece = null;
+  reachableHexes = new Set();
+  effectSelectMode = null;
+  document.getElementById('placementOverlay').classList.remove('active');
+  currentTeam = otherTeam(currentTeam);
+  startTurn();
+}
+
+function showRules() {
+  document.getElementById('rulesOverlay').classList.add('active');
+}
+
+function hideRules() {
+  document.getElementById('rulesOverlay').classList.remove('active');
+}
+
+function skipAction() {
+  // Allow skipping in certain states
+  if (effectSelectMode) {
+    effectSelectMode = null;
+    document.getElementById('placementOverlay').classList.remove('active');
+    endTurn();
+    drawBoard();
+  }
+}
+
+function restart() {
+  document.getElementById('cardOverlay').classList.remove('active');
+  document.getElementById('rulesOverlay').classList.remove('active');
+  document.getElementById('placementOverlay').classList.remove('active');
+  document.getElementById('penaltyOverlay').classList.remove('active');
+  startGame();
+}
+
+// ============= Event Listeners =============
+let touchHandled = false;
+canvas.addEventListener('touchend', (e) => {
+  touchHandled = true;
+  handleCanvasClick(e);
+});
+canvas.addEventListener('click', (e) => {
+  if (touchHandled) { touchHandled = false; return; }
+  handleCanvasClick(e);
+});
+window.addEventListener('resize', () => { initSize(); drawBoard(); });
+
+// ============= Init =============
+initSize();
+startGame();
+drawBoard();
+</script>
+</body>
+</html>
