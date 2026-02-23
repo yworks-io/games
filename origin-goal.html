@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>制胜原点 · Origin Goal</title>
+<title>Vibe Kick</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
@@ -148,21 +148,21 @@
 <div id="wrapper">
   <div id="side">
     <div id="info">
-      <h1>制胜原点</h1>
+      <h1>Vibe Kick</h1>
       <div id="score-display"><span class="home-score">0</span> : <span class="away-score">0</span></div>
-      <div id="status">点击开始游戏</div>
+      <div id="status">Tap to start</div>
     </div>
     <div id="dice-area">
-      <button class="dice-btn atk" id="atkDiceBtn" onclick="rollDice('atk')" disabled>进攻 4-6</button>
+      <button class="dice-btn atk" id="atkDiceBtn" onclick="rollDice('atk')" disabled>ATK 4-6</button>
       <span id="dice-result"></span>
-      <button class="dice-btn def" id="defDiceBtn" onclick="rollDice('def')" disabled>防守 1-3</button>
+      <button class="dice-btn def" id="defDiceBtn" onclick="rollDice('def')" disabled>DEF 1-3</button>
     </div>
     <div id="controls">
-      <button id="undoBtn" onclick="undo()">悔棋</button>
-      <button id="rulesBtn" onclick="showRules()">规则</button>
-      <button id="restartBtn" onclick="restart()">重新开始</button>
-      <button id="skipBtn" onclick="skipAction()">跳过</button>
-      <button id="coordBtn" onclick="toggleCoords()">坐标</button>
+      <button id="undoBtn" onclick="undo()">Undo</button>
+      <button id="rulesBtn" onclick="showRules()">Rules</button>
+      <button id="restartBtn" onclick="restart()">Restart</button>
+      <button id="skipBtn" onclick="skipAction()">Skip</button>
+      <button id="coordBtn" onclick="toggleCoords()">Coords</button>
     </div>
   </div>
   <div id="board-area">
@@ -179,47 +179,47 @@
     <h2 id="cardName"></h2>
     <div class="card-en" id="cardNameEn"></div>
     <p id="cardDesc"></p>
-    <button id="cardOkBtn" onclick="closeCard()">确定</button>
+    <button id="cardOkBtn" onclick="closeCard()">OK</button>
   </div>
 </div>
 
 <!-- Rules overlay -->
 <div id="rulesOverlay">
   <div id="rulesBox">
-    <h2>游戏规则</h2>
-    <h3>目标</h3>
-    <p>将棋子移过对方球门线即为进球，进球多的一方获胜。</p>
-    <h3>骰子</h3>
-    <p>每回合选择进攻骰（4-6）或防守骰（1-3），掷出的点数即为移动步数。</p>
-    <h3>抢断</h3>
-    <p>棋子落到对手棋子的位置即为抢断，被抢断的棋子回到己方半场深绿色点位。本方半场只能用防守骰抢断；对方半场两种骰子均可。</p>
-    <h3>正面防守</h3>
-    <p>相邻格有对方棋子时，不能穿过该棋子，必须绕行。</p>
-    <h3>事件卡</h3>
-    <p>在对方半场落入红/黄/蓝色点位时抽取对应卡牌。红卡75%有利，黄卡66%有利，蓝卡50%有利。</p>
-    <h3>快攻点</h3>
-    <p>4个快攻点之间可以互相跳跃。落入快攻点时必须跳跃（全部占满除外）。</p>
-    <h3>落点有己方棋子</h3>
-    <p>若移动终点有己方棋子，可继续向前一步（可连锁触发各种效果）。</p>
-    <h3>门将</h3>
-    <p>门将抢断只能使用防守骰，但移动可使用任意骰子。</p>
-    <h3>点球</h3>
-    <p>进攻方掷进攻骰，防守方掷防守骰，进攻方≥防守方即进球。</p>
-    <button class="close-btn" onclick="hideRules()">关闭</button>
+    <h2>Game Rules</h2>
+    <h3>Objective</h3>
+    <p>Move your piece across the opponent's goal line to score. The team with the most goals wins.</p>
+    <h3>Dice</h3>
+    <p>Each turn, choose the Attack die (4–6) or Defense die (1–3). The result is the number of steps to move.</p>
+    <h3>Tackling</h3>
+    <p>Landing on an opponent's piece is a tackle; the tackled piece returns to a green reset point in its own half. In your own half, only the Defense die can tackle; in the opponent's half, either die works.</p>
+    <h3>Frontal Defense</h3>
+    <p>You cannot pass through an adjacent opponent piece — you must go around it.</p>
+    <h3>Event Cards</h3>
+    <p>Landing on a red/yellow/blue spot in the opponent's half draws a card of that color. Red: 75% favorable. Yellow: 66% favorable. Blue: 50% favorable.</p>
+    <h3>Fast Attack Points</h3>
+    <p>A piece landing on a fast attack point must jump to another fast attack point (unless all are occupied by your team).</p>
+    <h3>Chain Step</h3>
+    <p>If your destination is occupied by a teammate, your piece continues one step forward (can trigger chain effects).</p>
+    <h3>Goalkeeper</h3>
+    <p>The goalkeeper can only tackle with the Defense die, but may move with either die.</p>
+    <h3>Penalty Kick</h3>
+    <p>The attacker rolls the Attack die, the defender rolls the Defense die. If Attack ≥ Defense, it's a goal.</p>
+    <button class="close-btn" onclick="hideRules()">Close</button>
   </div>
 </div>
 
 <!-- Placement overlay -->
 <div id="placementOverlay">
   <div id="placementBox">
-    <p id="placementMsg">请在棋盘上选择一个目标位置</p>
+    <p id="placementMsg">Select a target position on the board</p>
   </div>
 </div>
 
 <!-- Penalty overlay -->
 <div id="penaltyOverlay">
   <div id="penaltyBox">
-    <h2>点球大战</h2>
+    <h2>Penalty Kick</h2>
     <p id="penaltyInfo"></p>
     <div>
       <span class="penalty-dice atk-color" id="penaltyAtkDice">?</span>
@@ -227,8 +227,8 @@
       <span class="penalty-dice def-color" id="penaltyDefDice">?</span>
     </div>
     <div id="penaltyResult"></div>
-    <button id="penaltyRollBtn" onclick="rollPenalty()">掷骰子</button>
-    <button id="penaltyCloseBtn" onclick="closePenalty()">确定</button>
+    <button id="penaltyRollBtn" onclick="rollPenalty()">Roll Dice</button>
+    <button id="penaltyCloseBtn" onclick="closePenalty()">OK</button>
   </div>
 </div>
 
@@ -433,9 +433,12 @@ function buildBoard() {
   // Clear previous
   for (const k in boardCells) delete boardCells[k];
 
-  // Main field: 16 columns (0-15) × 35 rows (0-34)
+  // Main field: even rows have 16 cols (0-15), odd rows have 17 cols (-1 to 15)
+  // In even-r pointy-top offset, odd rows shift right by half a hex.
+  // Adding col -1 on odd rows fills the left gap so both edges align visually.
   for (let r = 0; r <= 34; r++) {
-    for (let c = 0; c <= 15; c++) {
+    const cMin = (r & 1) ? -1 : 0;
+    for (let c = cMin; c <= 15; c++) {
       const half = r < 17 ? 'away' : (r > 17 ? 'home' : 'mid');
       boardCells[hexKey(c, r)] = { col: c, row: r, type: CELL_NORMAL, half };
     }
@@ -455,28 +458,32 @@ function buildBoard() {
     boardCells[hexKey(c, 34)].type = CELL_GOAL_MOUTH;
   });
 
-  // ---- Dark green starting positions (~18 per half) ----
-  // Away half (rows 2-16) — symmetric layout
+  // ---- Dark green starting positions (per half) ----
+  // Away half — from physical board
   const awayGreen = [
-    [7,2],[8,2],
-    [5,3],[10,3],
-    [3,5],[7,5],[8,5],[12,5],
-    [2,7],[5,7],[10,7],[13,7],
-    [1,9],[4,9],[7,9],[8,9],[11,9],[14,9],
-    [3,11],[6,11],[9,11],[12,11],
-    [2,13],[5,13],[10,13],[13,13],
-    [3,15],[7,15],[8,15],[12,15]
+    [7,1],
+    [5,3],[9,3],
+    [2,4],[13,4],
+    [7,5],
+    [5,8],[10,8],
+    [1,10],[14,10],
+    [4,11],[7,11],[10,11],
+    [1,13],[13,13],
+    [7,15],
+    [4,16],[11,16]
   ];
-  // Home half (rows 18-32) — mirror
+  // Home half — point-symmetric mirror of away around [7,17]: [c,r] → [14-c, 34-r]
   const homeGreen = [
-    [3,19],[7,19],[8,19],[12,19],
-    [2,21],[5,21],[10,21],[13,21],
-    [3,23],[6,23],[9,23],[12,23],
-    [1,25],[4,25],[7,25],[8,25],[11,25],[14,25],
-    [2,27],[5,27],[10,27],[13,27],
-    [3,29],[7,29],[8,29],[12,29],
-    [5,31],[10,31],
-    [7,32],[8,32]
+    [4,18],[11,18],
+    [7,19],
+    [1,21],[13,21],
+    [4,23],[7,23],[10,23],
+    [1,24],[14,24],
+    [5,26],[10,26],
+    [7,29],
+    [2,30],[13,30],
+    [5,31],[9,31],
+    [7,33]
   ];
 
   awayGreen.forEach(([c,r]) => {
@@ -489,20 +496,23 @@ function buildBoard() {
   });
 
   // ---- Event card spots ----
-  // Red spots (near goal areas — 75% favorable), 4 per half
+  // Red spots (near goal areas — 75% favorable)
+  // Away half — from physical board
   const redCells = [
-    [5,2],[10,2],[7,3],[8,3],
-    [7,31],[8,31],[5,32],[10,32]
+    [3,5],[7,7],
+    [7,27],[11,29]
   ];
-  // Yellow spots (mid-zone — 66% favorable), 6 per half
+  // Yellow spots (66% favorable)
+  // Away half — from physical board
   const yellowCells = [
-    [2,8],[13,8],[5,9],[10,9],[3,10],[12,10],
-    [3,24],[12,24],[5,25],[10,25],[2,26],[13,26]
+    [11,1],[7,13],
+    [3,33],[7,21]
   ];
-  // Blue spots (near midfield — 50% favorable), 4 per half
+  // Blue spots (50% favorable)
+  // Away half — from physical board
   const blueCells = [
-    [3,13],[12,13],[6,14],[9,14],
-    [6,20],[9,20],[3,21],[12,21]
+    [9,5],[2,7],[13,12],
+    [1,22],[5,29],[12,27]
   ];
 
   redCells.forEach(([c,r]) => {
@@ -519,7 +529,8 @@ function buildBoard() {
   });
 
   // ---- Fast attack points (4 total, near midfield corners) ----
-  const fastAttackCells = [[1,15],[14,15],[1,19],[14,19]];
+  // Positions TBD — user will confirm locations
+  const fastAttackCells = [];
   fastAttackCells.forEach(([c,r]) => {
     const k = hexKey(c,r);
     if (boardCells[k]) boardCells[k].type = CELL_FAST_ATTACK;
@@ -541,64 +552,64 @@ function getOtherFastAttackPoints(col, row) {
 // ============= Event Cards =============
 const CARDS = {
   blue: [
-    { id:'B01', name:'裁判误判', nameEn:'Referee Error', desc:'对手获得黄牌一张', favorable: true, effect:'yellow_card_opponent' },
-    { id:'B02', name:'协助防守', nameEn:'Defensive Support', desc:'移动对手棋子3步', favorable: true, effect:'move_opponent', value:3 },
-    { id:'B03', name:'刻苦训练', nameEn:'Train Hard', desc:'奖励4步', favorable: true, effect:'reward_steps', value:4 },
-    { id:'B04', name:'反越位', nameEn:'Beat the Offside Trap', desc:'移动对手棋子4步', favorable: true, effect:'move_opponent', value:4 },
-    { id:'B05', name:'补水时间', nameEn:'Water Break', desc:'移动对手棋子3步', favorable: true, effect:'move_opponent', value:3 },
-    { id:'B06', name:'阅读比赛', nameEn:'Game Reading', desc:'奖励4步', favorable: true, effect:'reward_steps', value:4 },
-    { id:'B07', name:'球迷助威', nameEn:'Fans Support', desc:'奖励3步', favorable: true, effect:'reward_steps', value:3 },
-    { id:'B08', name:'鼓励队友', nameEn:'Encourage Teammates', desc:'奖励3步', favorable: true, effect:'reward_steps', value:3 },
-    { id:'B09', name:'尊重对手', nameEn:'Respect Opponent', desc:'将己方一名球员移至本方半场任意空绿色点位', favorable: true, effect:'place_own_friendly_green' },
-    { id:'B10', name:'开场逆风', nameEn:'Slow Start', desc:'对手获得红牌一张', favorable: true, effect:'red_card_opponent' },
-    { id:'B11', name:'口头警告', nameEn:'Verbal Warning', desc:'被对手移动4步', favorable: false, effect:'opponent_moves_you', value:4 },
-    { id:'B12', name:'进攻犯规', nameEn:'Offensive Foul', desc:'被对手移动3步', favorable: false, effect:'opponent_moves_you', value:3 },
-    { id:'B13', name:'主动失误', nameEn:'Unforced Error', desc:'被对手移动3步', favorable: false, effect:'opponent_moves_you', value:3 },
-    { id:'B14', name:'球员受伤', nameEn:'Player Injured', desc:'对手可将其一名球员移至你方半场任意空绿色点位', favorable: false, effect:'opponent_place_in_your_half' },
-    { id:'B15', name:'自信爆棚', nameEn:'Boosted Confidence', desc:'获得黄牌一张', favorable: false, effect:'yellow_card_self' },
-    { id:'B16', name:'情绪失控', nameEn:'Emotional Breakdown', desc:'奖励对手4步', favorable: false, effect:'reward_opponent', value:4 },
-    { id:'B17', name:'防守犯规', nameEn:'Defensive Foul', desc:'奖励对手3步', favorable: false, effect:'reward_opponent', value:3 },
-    { id:'B18', name:'界外球违例', nameEn:'Foul Throw', desc:'奖励对手3步', favorable: false, effect:'reward_opponent', value:3 },
-    { id:'B19', name:'沟通不畅', nameEn:'Poor Communication', desc:'被对手移动4步', favorable: false, effect:'opponent_moves_you', value:4 },
-    { id:'B20', name:'时来运转', nameEn:'Turn of Fortune', desc:'获得红牌一张', favorable: false, effect:'red_card_self' },
+    { id:'B01', name:'裁判误判', nameEn:'Referee Error', desc:'对手获得黄牌一张', descEn:'Opponent receives a yellow card', favorable: true, effect:'yellow_card_opponent' },
+    { id:'B02', name:'协助防守', nameEn:'Defensive Support', desc:'移动对手棋子3步', descEn:'Move an opponent piece 3 steps', favorable: true, effect:'move_opponent', value:3 },
+    { id:'B03', name:'刻苦训练', nameEn:'Train Hard', desc:'奖励4步', descEn:'Bonus 4 steps', favorable: true, effect:'reward_steps', value:4 },
+    { id:'B04', name:'反越位', nameEn:'Beat the Offside Trap', desc:'移动对手棋子4步', descEn:'Move an opponent piece 4 steps', favorable: true, effect:'move_opponent', value:4 },
+    { id:'B05', name:'补水时间', nameEn:'Water Break', desc:'移动对手棋子3步', descEn:'Move an opponent piece 3 steps', favorable: true, effect:'move_opponent', value:3 },
+    { id:'B06', name:'阅读比赛', nameEn:'Game Reading', desc:'奖励4步', descEn:'Bonus 4 steps', favorable: true, effect:'reward_steps', value:4 },
+    { id:'B07', name:'球迷助威', nameEn:'Fans Support', desc:'奖励3步', descEn:'Bonus 3 steps', favorable: true, effect:'reward_steps', value:3 },
+    { id:'B08', name:'鼓励队友', nameEn:'Encourage Teammates', desc:'奖励3步', descEn:'Bonus 3 steps', favorable: true, effect:'reward_steps', value:3 },
+    { id:'B09', name:'尊重对手', nameEn:'Respect Opponent', desc:'将己方一名球员移至本方半场任意空绿色点位', descEn:'Move one of your pieces to any empty green spot in your half', favorable: true, effect:'place_own_friendly_green' },
+    { id:'B10', name:'开场逆风', nameEn:'Slow Start', desc:'对手获得红牌一张', descEn:'Opponent receives a red card', favorable: true, effect:'red_card_opponent' },
+    { id:'B11', name:'口头警告', nameEn:'Verbal Warning', desc:'被对手移动4步', descEn:'Opponent moves one of your pieces 4 steps', favorable: false, effect:'opponent_moves_you', value:4 },
+    { id:'B12', name:'进攻犯规', nameEn:'Offensive Foul', desc:'被对手移动3步', descEn:'Opponent moves one of your pieces 3 steps', favorable: false, effect:'opponent_moves_you', value:3 },
+    { id:'B13', name:'主动失误', nameEn:'Unforced Error', desc:'被对手移动3步', descEn:'Opponent moves one of your pieces 3 steps', favorable: false, effect:'opponent_moves_you', value:3 },
+    { id:'B14', name:'球员受伤', nameEn:'Player Injured', desc:'对手可将其一名球员移至你方半场任意空绿色点位', descEn:'Opponent may move one of their pieces to any empty green spot in your half', favorable: false, effect:'opponent_place_in_your_half' },
+    { id:'B15', name:'自信爆棚', nameEn:'Boosted Confidence', desc:'获得黄牌一张', descEn:'You receive a yellow card', favorable: false, effect:'yellow_card_self' },
+    { id:'B16', name:'情绪失控', nameEn:'Emotional Breakdown', desc:'奖励对手4步', descEn:'Opponent gets bonus 4 steps', favorable: false, effect:'reward_opponent', value:4 },
+    { id:'B17', name:'防守犯规', nameEn:'Defensive Foul', desc:'奖励对手3步', descEn:'Opponent gets bonus 3 steps', favorable: false, effect:'reward_opponent', value:3 },
+    { id:'B18', name:'界外球违例', nameEn:'Foul Throw', desc:'奖励对手3步', descEn:'Opponent gets bonus 3 steps', favorable: false, effect:'reward_opponent', value:3 },
+    { id:'B19', name:'沟通不畅', nameEn:'Poor Communication', desc:'被对手移动4步', descEn:'Opponent moves one of your pieces 4 steps', favorable: false, effect:'opponent_moves_you', value:4 },
+    { id:'B20', name:'时来运转', nameEn:'Turn of Fortune', desc:'获得红牌一张', descEn:'You receive a red card', favorable: false, effect:'red_card_self' },
   ],
   red: [
-    { id:'R01', name:'点球', nameEn:'Penalty', desc:'获得点球机会！进攻骰≥防守骰即进球', favorable: true, effect:'penalty' },
-    { id:'R02', name:'面授机宜', nameEn:'Secret Coaching', desc:'奖励4步', favorable: true, effect:'reward_steps', value:4 },
-    { id:'R03', name:'逆风翻盘', nameEn:'Great Comeback', desc:'奖励6步', favorable: true, effect:'reward_steps', value:6 },
-    { id:'R04', name:'乌龙球', nameEn:'Own Goal', desc:'对手掷骰子为4则记为乌龙球', favorable: true, effect:'own_goal_check' },
-    { id:'R05', name:'进攻有利', nameEn:'Advantage Played', desc:'移动对手棋子4步', favorable: true, effect:'move_opponent', value:4 },
-    { id:'R06', name:'禁区犯规', nameEn:'Foul in Box', desc:'判给对手点球', favorable: false, effect:'penalty_opponent' },
-    { id:'R07', name:'体力下降', nameEn:'Stamina Drop', desc:'被对手移动4步', favorable: false, effect:'opponent_moves_you', value:4 },
-    { id:'R08', name:'VAR-红牌动作', nameEn:'VAR-Red Card Review', desc:'再掷一次，若为6则罚下对手一人', favorable: true, effect:'var_red_card' },
-    { id:'R09', name:'累计黄牌', nameEn:'Second Yellow', desc:'对手获得红牌一张', favorable: true, effect:'red_card_opponent' },
-    { id:'R10', name:'体能优势', nameEn:'Physical Advantage', desc:'将己方一名球员移至全场任意空绿色点位', favorable: true, effect:'place_own_any_green' },
-    { id:'R11', name:'前场紧逼', nameEn:'High Press', desc:'将对手任意一名球员移至任意空绿色点位', favorable: true, effect:'move_opponent_to_green' },
-    { id:'R12', name:'脑力下降', nameEn:'Mental Fatigue', desc:'奖励对手6步', favorable: false, effect:'reward_opponent', value:6 },
-    { id:'R13', name:'门将进球', nameEn:'Goalkeeper Scores', desc:'再掷一次，若为6则门将进球', favorable: true, effect:'goalkeeper_goal_check' },
-    { id:'R14', name:'长传冲吊', nameEn:'Long Ball Attack', desc:'将己方一名球员移至对手半场任意空绿色点位', favorable: true, effect:'place_own_opponent_green' },
-    { id:'R15', name:'VAR取消进球', nameEn:'VAR-Goal Review', desc:'再掷一次，若为6则吹掉对手一个进球', favorable: true, effect:'var_cancel_goal' },
-    { id:'R16', name:'VAR判罚点球', nameEn:'VAR-Penalty Review', desc:'再掷一次，若大于4则获得点球', favorable: true, effect:'var_penalty' },
+    { id:'R01', name:'点球', nameEn:'Penalty', desc:'获得点球机会！进攻骰≥防守骰即进球', descEn:'Penalty kick! Attack die ≥ Defense die = Goal', favorable: true, effect:'penalty' },
+    { id:'R02', name:'面授机宜', nameEn:'Secret Coaching', desc:'奖励4步', descEn:'Bonus 4 steps', favorable: true, effect:'reward_steps', value:4 },
+    { id:'R03', name:'逆风翻盘', nameEn:'Great Comeback', desc:'奖励6步', descEn:'Bonus 6 steps', favorable: true, effect:'reward_steps', value:6 },
+    { id:'R04', name:'乌龙球', nameEn:'Own Goal', desc:'对手掷骰子为4则记为乌龙球', descEn:'Roll the dice — if the result is 4, it\'s an own goal', favorable: true, effect:'own_goal_check' },
+    { id:'R05', name:'进攻有利', nameEn:'Advantage Played', desc:'移动对手棋子4步', descEn:'Move an opponent piece 4 steps', favorable: true, effect:'move_opponent', value:4 },
+    { id:'R06', name:'禁区犯规', nameEn:'Foul in Box', desc:'判给对手点球', descEn:'Opponent is awarded a penalty kick', favorable: false, effect:'penalty_opponent' },
+    { id:'R07', name:'体力下降', nameEn:'Stamina Drop', desc:'被对手移动4步', descEn:'Opponent moves one of your pieces 4 steps', favorable: false, effect:'opponent_moves_you', value:4 },
+    { id:'R08', name:'VAR-红牌动作', nameEn:'VAR-Red Card Review', desc:'再掷一次，若为6则罚下对手一人', descEn:'Roll again — if 6, an opponent player is sent off', favorable: true, effect:'var_red_card' },
+    { id:'R09', name:'累计黄牌', nameEn:'Second Yellow', desc:'对手获得红牌一张', descEn:'Opponent receives a red card', favorable: true, effect:'red_card_opponent' },
+    { id:'R10', name:'体能优势', nameEn:'Physical Advantage', desc:'将己方一名球员移至全场任意空绿色点位', descEn:'Move one of your pieces to any empty green spot on the field', favorable: true, effect:'place_own_any_green' },
+    { id:'R11', name:'前场紧逼', nameEn:'High Press', desc:'将对手任意一名球员移至任意空绿色点位', descEn:'Move any opponent piece to any empty green spot', favorable: true, effect:'move_opponent_to_green' },
+    { id:'R12', name:'脑力下降', nameEn:'Mental Fatigue', desc:'奖励对手6步', descEn:'Opponent gets bonus 6 steps', favorable: false, effect:'reward_opponent', value:6 },
+    { id:'R13', name:'门将进球', nameEn:'Goalkeeper Scores', desc:'再掷一次，若为6则门将进球', descEn:'Roll again — if 6, the goalkeeper scores a goal', favorable: true, effect:'goalkeeper_goal_check' },
+    { id:'R14', name:'长传冲吊', nameEn:'Long Ball Attack', desc:'将己方一名球员移至对手半场任意空绿色点位', descEn:'Move one of your pieces to any empty green spot in opponent\'s half', favorable: true, effect:'place_own_opponent_green' },
+    { id:'R15', name:'VAR取消进球', nameEn:'VAR-Goal Review', desc:'再掷一次，若为6则吹掉对手一个进球', descEn:'Roll again — if 6, opponent\'s last goal is disallowed', favorable: true, effect:'var_cancel_goal' },
+    { id:'R16', name:'VAR判罚点球', nameEn:'VAR-Penalty Review', desc:'再掷一次，若大于4则获得点球', descEn:'Roll again — if greater than 4, you get a penalty kick', favorable: true, effect:'var_penalty' },
   ],
   yellow: [
-    { id:'Y01', name:'假摔被罚', nameEn:'Penalized for Diving', desc:'对手获得红牌一张', favorable: true, effect:'red_card_opponent' },
-    { id:'Y02', name:'严重犯规', nameEn:'Serious Foul', desc:'允许对手选择一名球员移至全场任意空绿色点位', favorable: false, effect:'opponent_place_any_green' },
-    { id:'Y03', name:'发现空挡', nameEn:'Found the Gap', desc:'将己方一名球员移至对手半场任意空绿色点位', favorable: true, effect:'place_own_opponent_green' },
-    { id:'Y04', name:'被严重犯规', nameEn:'Suffer a Serious Foul', desc:'将己方一名球员移至全场任意空绿色点位', favorable: true, effect:'place_own_any_green' },
-    { id:'Y05', name:'任意球', nameEn:'Free-kick', desc:'再掷一次骰子', favorable: true, effect:'extra_roll' },
-    { id:'Y06', name:'进攻角球', nameEn:'Attacking Corner', desc:'奖励4步', favorable: true, effect:'reward_steps', value:4 },
-    { id:'Y07', name:'对手失误', nameEn:"Opponent's Mistake", desc:'奖励6步', favorable: true, effect:'reward_steps', value:6 },
-    { id:'Y08', name:'越位陷阱', nameEn:'Offside Trap', desc:'移动对手棋子4步', favorable: true, effect:'move_opponent', value:4 },
-    { id:'Y09', name:'团队配合', nameEn:'Teamwork', desc:'奖励两个球员分别移动2步', favorable: true, effect:'two_players_move', value:2 },
-    { id:'Y10', name:'质疑裁判', nameEn:'Arguing with Referee', desc:'被对手移动6步', favorable: false, effect:'opponent_moves_you', value:6 },
-    { id:'Y11', name:'手球犯规', nameEn:'Handball', desc:'奖励对手4步', favorable: false, effect:'reward_opponent', value:4 },
-    { id:'Y12', name:'黄牌警告', nameEn:'Yellow Card', desc:'停一次', favorable: false, effect:'skip_turn' },
-    { id:'Y13', name:'快发任意球', nameEn:'Quick Free-kick', desc:'移动对手棋子4步', favorable: true, effect:'move_opponent', value:4 },
-    { id:'Y14', name:'防守反击', nameEn:'Counter Attack', desc:'奖励4步', favorable: true, effect:'reward_steps', value:4 },
-    { id:'Y15', name:'拖延时间', nameEn:'Time-Wasting', desc:'被对手移动4步', favorable: false, effect:'opponent_moves_you', value:4 },
-    { id:'Y16', name:'事态升级', nameEn:'Escalation', desc:'获得红牌一张', favorable: false, effect:'red_card_self' },
-    { id:'Y17', name:'间接任意球', nameEn:'Indirect Free-kick', desc:'再投一次，大于4可走', favorable: true, effect:'indirect_free_kick' },
-    { id:'Y18', name:'拉扯空间', nameEn:'Create Space', desc:'奖励两个球员分别移动2步', favorable: true, effect:'two_players_move', value:2 },
+    { id:'Y01', name:'假摔被罚', nameEn:'Penalized for Diving', desc:'对手获得红牌一张', descEn:'Opponent receives a red card', favorable: true, effect:'red_card_opponent' },
+    { id:'Y02', name:'严重犯规', nameEn:'Serious Foul', desc:'允许对手选择一名球员移至全场任意空绿色点位', descEn:'Opponent may move one of their pieces to any empty green spot', favorable: false, effect:'opponent_place_any_green' },
+    { id:'Y03', name:'发现空挡', nameEn:'Found the Gap', desc:'将己方一名球员移至对手半场任意空绿色点位', descEn:'Move one of your pieces to any empty green spot in opponent\'s half', favorable: true, effect:'place_own_opponent_green' },
+    { id:'Y04', name:'被严重犯规', nameEn:'Suffer a Serious Foul', desc:'将己方一名球员移至全场任意空绿色点位', descEn:'Move one of your pieces to any empty green spot on the field', favorable: true, effect:'place_own_any_green' },
+    { id:'Y05', name:'任意球', nameEn:'Free-kick', desc:'再掷一次骰子', descEn:'Roll the dice again', favorable: true, effect:'extra_roll' },
+    { id:'Y06', name:'进攻角球', nameEn:'Attacking Corner', desc:'奖励4步', descEn:'Bonus 4 steps', favorable: true, effect:'reward_steps', value:4 },
+    { id:'Y07', name:'对手失误', nameEn:"Opponent's Mistake", desc:'奖励6步', descEn:'Bonus 6 steps', favorable: true, effect:'reward_steps', value:6 },
+    { id:'Y08', name:'越位陷阱', nameEn:'Offside Trap', desc:'移动对手棋子4步', descEn:'Move an opponent piece 4 steps', favorable: true, effect:'move_opponent', value:4 },
+    { id:'Y09', name:'团队配合', nameEn:'Teamwork', desc:'奖励两个球员分别移动2步', descEn:'Two of your players each get 2 bonus steps', favorable: true, effect:'two_players_move', value:2 },
+    { id:'Y10', name:'质疑裁判', nameEn:'Arguing with Referee', desc:'被对手移动6步', descEn:'Opponent moves one of your pieces 6 steps', favorable: false, effect:'opponent_moves_you', value:6 },
+    { id:'Y11', name:'手球犯规', nameEn:'Handball', desc:'奖励对手4步', descEn:'Opponent gets bonus 4 steps', favorable: false, effect:'reward_opponent', value:4 },
+    { id:'Y12', name:'黄牌警告', nameEn:'Yellow Card', desc:'停一次', descEn:'Skip your next turn', favorable: false, effect:'skip_turn' },
+    { id:'Y13', name:'快发任意球', nameEn:'Quick Free-kick', desc:'移动对手棋子4步', descEn:'Move an opponent piece 4 steps', favorable: true, effect:'move_opponent', value:4 },
+    { id:'Y14', name:'防守反击', nameEn:'Counter Attack', desc:'奖励4步', descEn:'Bonus 4 steps', favorable: true, effect:'reward_steps', value:4 },
+    { id:'Y15', name:'拖延时间', nameEn:'Time-Wasting', desc:'被对手移动4步', descEn:'Opponent moves one of your pieces 4 steps', favorable: false, effect:'opponent_moves_you', value:4 },
+    { id:'Y16', name:'事态升级', nameEn:'Escalation', desc:'获得红牌一张', descEn:'You receive a red card', favorable: false, effect:'red_card_self' },
+    { id:'Y17', name:'间接任意球', nameEn:'Indirect Free-kick', desc:'再投一次，大于4可走', descEn:'Roll again — if greater than 4, you may move that many steps', favorable: true, effect:'indirect_free_kick' },
+    { id:'Y18', name:'拉扯空间', nameEn:'Create Space', desc:'奖励两个球员分别移动2步', descEn:'Two of your players each get 2 bonus steps', favorable: true, effect:'two_players_move', value:2 },
   ]
 };
 
@@ -760,13 +771,12 @@ function initSize() {
     maxH = vh - 180;
   }
   // Pointy-top hex, even-r offset
-  // Grid: 16 cols (0-15), rows -1 to 35 (37 rows total including goals)
-  // Width: (16 + 0.5) * sqrt(3) * size  (extra 0.5 for odd-row shift)
-  // Height: 37 * 1.5 * size + size (rows -1 to 35)
-  const totalCols = 16;
-  const totalRows = 37; // rows -1 to 35
-  const wPerUnit = (totalCols + 0.5) * Math.sqrt(3);
-  const hPerUnit = totalRows * 1.5 + 1;
+  // Even rows: cols 0-15 (16 cols). Odd rows: cols -1 to 15 (17 cols).
+  // Rows -1 to 35 (37 rows total including goals).
+  // Width: 17 * sqrt(3) * size (17 hex-widths to cover both even and odd rows)
+  // Height: 37 * 1.5 * size + size
+  const wPerUnit = 17 * Math.sqrt(3);
+  const hPerUnit = 37 * 1.5 + 1;
   const sizeByW = maxW / wPerUnit;
   const sizeByH = maxH / hPerUnit;
   hexSize = Math.min(sizeByW, sizeByH);
@@ -779,8 +789,10 @@ function initSize() {
   canvas.style.width = boardW + 'px';
   canvas.style.height = boardH + 'px';
 
-  // Offset so that col=0,row=-1 is visible with padding
-  offsetX = hexSize * 1.5;
+  // Offset so col=-1 on odd rows is visible with padding
+  // Odd row col -1 center: x = -sqrt(3)*hexSize + sqrt(3)/2*hexSize = -sqrt(3)/2*hexSize
+  // Need left edge (-sqrt(3)*hexSize) to be on canvas with padding
+  offsetX = hexSize * Math.sqrt(3) + hexSize * 0.5;
   offsetY = hexSize * 2.5;
 }
 
@@ -802,8 +814,21 @@ function drawBoard() {
   ctx.fillStyle = '#2d5a1e';
   ctx.fillRect(0, 0, boardW, boardH);
 
-  // Draw all hex cells
+  // Pitch boundary rectangle — used to clip edge hexes on odd rows
+  const hw = hexSize * Math.sqrt(3) / 2;
+  const pitchLeft   = hexToPixel(0, 0).x - hw;
+  const pitchRight  = hexToPixel(15, 0).x + hw;
+  const pitchTop    = hexToPixel(0, 0).y - hexSize;
+  const pitchBottom = hexToPixel(0, 34).y + hexSize;
+
+  // Draw field hex cells (clipped to pitch boundary)
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(pitchLeft, pitchTop, pitchRight - pitchLeft, pitchBottom - pitchTop);
+  ctx.clip();
+
   for (const [k, cell] of Object.entries(boardCells)) {
+    if (cell.type === CELL_GOAL) continue; // goals drawn separately outside clip
     const { x, y } = hexToPixel(cell.col, cell.row);
     const sz = hexSize * 0.92;
 
@@ -825,21 +850,34 @@ function drawBoard() {
       ctx.textBaseline = 'middle';
       ctx.fillText('⚡', x, y);
     }
+  }
+  ctx.restore(); // remove clip
+
+  // Draw goal hexes (outside pitch boundary, no clipping)
+  for (const [k, cell] of Object.entries(boardCells)) {
+    if (cell.type !== CELL_GOAL) continue;
+    const { x, y } = hexToPixel(cell.col, cell.row);
+    const sz = hexSize * 0.92;
+
+    drawHexShape(x, y, sz);
+    ctx.fillStyle = HEX_COLORS[CELL_GOAL];
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
     // Goal net pattern
-    if (cell.type === CELL_GOAL) {
-      ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-      ctx.lineWidth = 0.5;
-      for (let i = -3; i <= 3; i++) {
-        ctx.beginPath();
-        ctx.moveTo(x - sz, y + i * sz / 3);
-        ctx.lineTo(x + sz, y + i * sz / 3);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x + i * sz / 3, y - sz);
-        ctx.lineTo(x + i * sz / 3, y + sz);
-        ctx.stroke();
-      }
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 0.5;
+    for (let i = -3; i <= 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(x - sz, y + i * sz / 3);
+      ctx.lineTo(x + sz, y + i * sz / 3);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + i * sz / 3, y - sz);
+      ctx.lineTo(x + i * sz / 3, y + sz);
+      ctx.stroke();
     }
   }
 
@@ -912,6 +950,17 @@ function drawBoard() {
 
   // Debug: draw coordinates on each cell
   if (showCoords) {
+    ctx.save();
+    // Clip to pitch + goal area so edge hex labels are trimmed
+    const cHw = hexSize * Math.sqrt(3) / 2;
+    const cLeft  = hexToPixel(0, 0).x - cHw;
+    const cRight = hexToPixel(15, 0).x + cHw;
+    const cTop   = hexToPixel(7, -1).y - hexSize;
+    const cBot   = hexToPixel(7, 35).y + hexSize;
+    ctx.beginPath();
+    ctx.rect(cLeft, cTop, cRight - cLeft, cBot - cTop);
+    ctx.clip();
+
     const fontSize = Math.max(6, Math.floor(hexSize * 0.35));
     ctx.font = `bold ${fontSize}px sans-serif`;
     ctx.textAlign = 'center';
@@ -927,6 +976,7 @@ function drawBoard() {
       ctx.fillStyle = '#fff';
       ctx.fillText(`${cell.col},${cell.row}`, x, y);
     }
+    ctx.restore();
   }
 }
 
@@ -959,8 +1009,9 @@ function drawPitchLines() {
   // Midfield Y
   const midY = hexToPixel(0, 17).y;
 
-  // Field center X (average of col 7 and col 8 on even row)
-  const centerX = (hexToPixel(7, 17).x + hexToPixel(8, 17).x) / 2;
+  // Field center: cell [7,17]
+  const center = hexToPixel(7, 17);
+  const centerX = center.x;
 
   // --- 1. Pitch outline (touchlines + goal lines) ---
   ctx.beginPath();
@@ -974,8 +1025,8 @@ function drawPitchLines() {
   ctx.stroke();
 
   // --- 3. Center circle ---
-  // Radius: approximately 3 hex-row-heights (covers rows 15-19 area)
-  const centerCircleRadius = hexSize * 1.5 * 2.5; // ~3.75 hexSizes
+  // Radius: 5 hex edge lengths (hexSize = edge length for pointy-top)
+  const centerCircleRadius = hexSize * 5;
   ctx.beginPath();
   ctx.arc(centerX, midY, centerCircleRadius, 0, Math.PI * 2);
   ctx.stroke();
@@ -1126,15 +1177,15 @@ function drawGoalPosts() {
   ctx.lineTo(gbr.x + hw, gbr.y - hexSize * 0.5);
   ctx.stroke();
 
-  // "ORIGIN GOAL" text near goals
+  // "VIBE KICK" text near goals
   ctx.fillStyle = 'rgba(255,255,255,0.15)';
   ctx.font = `bold ${Math.floor(hexSize * 0.55)}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const topCenter = hexToPixel(7.5, -1);
-  ctx.fillText('ORIGIN GOAL', topCenter.x, topCenter.y - hexSize * 1.3);
+  ctx.fillText('VIBE KICK', topCenter.x, topCenter.y - hexSize * 1.3);
   const botCenter = hexToPixel(7.5, 35);
-  ctx.fillText('ORIGIN GOAL', botCenter.x, botCenter.y + hexSize * 1.3);
+  ctx.fillText('VIBE KICK', botCenter.x, botCenter.y + hexSize * 1.3);
 }
 
 function drawPiece(p) {
@@ -1223,7 +1274,7 @@ function getReachableHexes(piece, steps) {
         const cell = boardCells[nk];
         if (!cell) continue;
 
-        // Check blocking (正面防守): common neighbors with opponents
+        // Check blocking (frontal defense): common neighbors with opponents
         if (isBlockedByOpponent(c, r, nc, nr, team)) continue;
 
         const occupant = getPieceAt(nc, nr);
@@ -1305,49 +1356,37 @@ function initPieces() {
   pieces = [];
   pieceIdCounter = 0;
 
-  // Formations for 16-col × 35-row grid
-  // Home team (bottom, rows 18-33): 4-4-2 style
-  const homeFormation = [
-    { col: 7, row: 32, isGK: true },  // GK
-    { col: 3, row: 29, isGK: false }, // LB
-    { col: 6, row: 29, isGK: false }, // CB
-    { col: 9, row: 29, isGK: false }, // CB
-    { col: 12, row: 29, isGK: false }, // RB
-    { col: 2, row: 25, isGK: false }, // LM
-    { col: 5, row: 25, isGK: false }, // CM
-    { col: 10, row: 25, isGK: false }, // CM
-    { col: 13, row: 25, isGK: false }, // RM
-    { col: 5, row: 21, isGK: false }, // ST
-    { col: 10, row: 21, isGK: false }, // ST
-  ];
+  // Players start on dark green spots in their own half (11 per team).
+  // GK goes on the green spot closest to own goal; remaining 10 fill the next closest spots.
+  function getGreenSpotsForHalf(half) {
+    const spots = [];
+    for (const [k, cell] of Object.entries(boardCells)) {
+      if (cell.type === CELL_DARK_GREEN && cell.half === half) {
+        spots.push({ col: cell.col, row: cell.row });
+      }
+    }
+    return spots;
+  }
 
-  // Away team (top, rows 1-16): 4-4-2 style
-  const awayFormation = [
-    { col: 8, row: 2, isGK: true },   // GK
-    { col: 3, row: 5, isGK: false },  // LB
-    { col: 6, row: 5, isGK: false },  // CB
-    { col: 9, row: 5, isGK: false },  // CB
-    { col: 12, row: 5, isGK: false }, // RB
-    { col: 2, row: 9, isGK: false },  // LM
-    { col: 5, row: 9, isGK: false },  // CM
-    { col: 10, row: 9, isGK: false }, // CM
-    { col: 13, row: 9, isGK: false }, // RM
-    { col: 5, row: 13, isGK: false }, // ST
-    { col: 10, row: 13, isGK: false }, // ST
-  ];
-
+  // Home team (bottom): GK nearest to row 34 (own goal)
+  const homeSpots = getGreenSpotsForHalf('home');
+  homeSpots.sort((a, b) => b.row - a.row); // highest row first (closest to home goal)
   let num = 1;
-  homeFormation.forEach(f => {
+  homeSpots.slice(0, 11).forEach((s, i) => {
     pieces.push({
-      id: pieceIdCounter++, team: 'home', col: f.col, row: f.row,
-      isGK: f.isGK, yellowCards: 0, removed: false, num: f.isGK ? '' : num++
+      id: pieceIdCounter++, team: 'home', col: s.col, row: s.row,
+      isGK: i === 0, yellowCards: 0, removed: false, num: i === 0 ? '' : num++
     });
   });
+
+  // Away team (top): GK nearest to row 0 (own goal)
+  const awaySpots = getGreenSpotsForHalf('away');
+  awaySpots.sort((a, b) => a.row - b.row); // lowest row first (closest to away goal)
   num = 1;
-  awayFormation.forEach(f => {
+  awaySpots.slice(0, 11).forEach((s, i) => {
     pieces.push({
-      id: pieceIdCounter++, team: 'away', col: f.col, row: f.row,
-      isGK: f.isGK, yellowCards: 0, removed: false, num: f.isGK ? '' : num++
+      id: pieceIdCounter++, team: 'away', col: s.col, row: s.row,
+      isGK: i === 0, yellowCards: 0, removed: false, num: i === 0 ? '' : num++
     });
   });
 }
@@ -1399,7 +1438,7 @@ function startTurn() {
   // Check skip turn
   if (skipNextTurn[currentTeam]) {
     skipNextTurn[currentTeam] = false;
-    statusEl.textContent = teamName(currentTeam) + ' 停赛一轮';
+    statusEl.textContent = teamName(currentTeam) + ' skips this turn';
     setTimeout(() => {
       currentTeam = otherTeam(currentTeam);
       startTurn();
@@ -1410,12 +1449,12 @@ function startTurn() {
   phase = PHASE.DICE_SELECT;
   atkBtn.disabled = false;
   defBtn.disabled = false;
-  statusEl.textContent = teamName(currentTeam) + ' — 选择骰子';
+  statusEl.textContent = teamName(currentTeam) + ' — Choose dice';
   drawBoard();
 }
 
 function teamName(t) {
-  return t === 'home' ? '🔴 红方' : '🔵 蓝方';
+  return t === 'home' ? '🔴 Red' : '🔵 Blue';
 }
 
 function updateScore() {
@@ -1446,7 +1485,7 @@ function rollDice(type) {
       diceResultEl.textContent = diceValue;
       animatingDice = false;
       phase = PHASE.PIECE_SELECT;
-      statusEl.textContent = teamName(currentTeam) + ' — 选择棋子移动 (' + diceValue + '步)';
+      statusEl.textContent = teamName(currentTeam) + ' — Select piece to move (' + diceValue + ' steps)';
       drawBoard();
     }
   }, 60);
@@ -1514,7 +1553,7 @@ function handlePieceSelect(col, row) {
   }
 
   phase = PHASE.MOVE_SELECT;
-  statusEl.textContent = teamName(currentTeam) + ' — 选择目标位置';
+  statusEl.textContent = teamName(currentTeam) + ' — Select destination';
   drawBoard();
 }
 
@@ -1722,7 +1761,7 @@ function scoreGoal(piece, col, row) {
     movePiece(piece, spot.col, spot.row);
   }
 
-  statusEl.textContent = '⚽ 进球！' + teamName(scoringTeam) + ' 得分！';
+  statusEl.textContent = '⚽ GOAL! ' + teamName(scoringTeam) + ' scores!';
   phase = PHASE.GOAL_SCORED;
   drawBoard();
 
@@ -1751,7 +1790,7 @@ function handleFastAttackLanding(piece) {
   // Let player choose which fast attack point to jump to
   phase = PHASE.FAST_ATTACK_SELECT;
   reachableHexes = new Set(available.map(p => hexKey(p.col, p.row)));
-  statusEl.textContent = teamName(currentTeam) + ' — 选择快攻跳跃目标';
+  statusEl.textContent = teamName(currentTeam) + ' — Select fast attack jump target';
   playBounce();
   drawBoard();
 }
@@ -1808,9 +1847,9 @@ function showCard(card, color, callback) {
   const bgColors = { red: '#3a1a1a', yellow: '#3a3010', blue: '#1a2a3a' };
   box.style.background = bgColors[color] || '#2a3a2a';
   stripe.style.background = colors[color] || '#888';
-  nameEl.textContent = card.name;
-  nameEnEl.textContent = card.nameEn;
-  descEl.textContent = card.desc;
+  nameEl.textContent = card.nameEn;
+  nameEnEl.textContent = '';
+  descEl.textContent = card.descEn;
 
   cardResolveCallback = callback;
   overlay.classList.add('active');
@@ -1883,16 +1922,16 @@ function applyCardEffect(card, triggerPiece) {
       break;
     case 'skip_turn':
       skipNextTurn[team] = true;
-      statusEl.textContent = teamName(team) + ' 下一轮停赛';
+      statusEl.textContent = teamName(team) + ' will skip next turn';
       setTimeout(() => { endTurn(); drawBoard(); }, 1000);
       break;
     case 'extra_roll':
-      statusEl.textContent = teamName(team) + ' 获得额外掷骰';
+      statusEl.textContent = teamName(team) + ' gets an extra roll';
       setTimeout(() => {
         phase = PHASE.DICE_SELECT;
         atkBtn.disabled = false;
         defBtn.disabled = false;
-        statusEl.textContent = teamName(team) + ' — 额外回合，选择骰子';
+        statusEl.textContent = teamName(team) + ' — Extra turn, choose dice';
         drawBoard();
       }, 500);
       break;
@@ -1931,7 +1970,7 @@ function startEffectMoveOwn(selectingTeam, steps, targetTeam) {
   const teamPieces = pieces.filter(p => !p.removed && p.team === tTeam);
   const validPieceHexes = new Set(teamPieces.map(p => hexKey(p.col, p.row)));
 
-  statusEl.textContent = teamName(selectingTeam) + ' — 选择要移动的棋子 (' + steps + '步)';
+  statusEl.textContent = teamName(selectingTeam) + ' — Select piece to move (' + steps + ' steps)';
   effectSelectMode = {
     type: 'card_move_select_piece',
     selectingTeam,
@@ -1989,7 +2028,7 @@ function handleEffectSelect(col, row) {
       effectSelectMode.phase = 2;
       effectSelectMode.validHexes = validDests;
       effectSelectMode.piece = piece;
-      statusEl.textContent = teamName(effectSelectMode.selectingTeam) + ' — 选择目标位置 (' + steps + '步)';
+      statusEl.textContent = teamName(effectSelectMode.selectingTeam) + ' — Select destination (' + steps + ' steps)';
       drawBoard();
     } else if (effectSelectMode.phase === 2) {
       // Select destination
@@ -2067,8 +2106,8 @@ function handleEffectSelect(col, row) {
       piece,
       validHexes: validGreenHexes,
     };
-    document.getElementById('placementMsg').textContent = '选择目标绿色点位';
-    statusEl.textContent = '选择目标绿色点位';
+    document.getElementById('placementMsg').textContent = 'Select target green spot';
+    statusEl.textContent = 'Select target green spot';
     drawBoard();
   } else if (effectSelectMode.type === 'red_card_select') {
     if (!effectSelectMode.validHexes.has(k)) return;
@@ -2077,7 +2116,7 @@ function handleEffectSelect(col, row) {
 
     piece.removed = true;
     playNegative();
-    statusEl.textContent = teamName(piece.team) + ' 一名球员被红牌罚下！';
+    statusEl.textContent = teamName(piece.team) + ' player sent off with a red card!';
     effectSelectMode = null;
     setTimeout(() => { endTurn(); drawBoard(); }, 1000);
     drawBoard();
@@ -2104,7 +2143,7 @@ function handleEffectSelect(col, row) {
       steps,
       validHexes: validDests,
     };
-    statusEl.textContent = '选择第一个球员的目标位置';
+    statusEl.textContent = 'Select destination for first player';
     drawBoard();
   } else if (effectSelectMode.type === 'two_players_first_dest') {
     if (!effectSelectMode.validHexes.has(k)) return;
@@ -2126,7 +2165,7 @@ function handleEffectSelect(col, row) {
       validHexes: validPieceHexes,
       firstPiece: piece,
     };
-    statusEl.textContent = '选择第二个球员';
+    statusEl.textContent = 'Select second player';
     drawBoard();
   } else if (effectSelectMode.type === 'two_players_second') {
     if (!effectSelectMode.validHexes.has(k)) return;
@@ -2150,7 +2189,7 @@ function handleEffectSelect(col, row) {
       steps,
       validHexes: validDests,
     };
-    statusEl.textContent = '选择第二个球员的目标位置';
+    statusEl.textContent = 'Select destination for second player';
     drawBoard();
   } else if (effectSelectMode.type === 'two_players_second_dest') {
     if (!effectSelectMode.validHexes.has(k)) return;
@@ -2176,9 +2215,9 @@ function startPlaceOnGreen(team, halfFilter) {
     validHexes: validPieceHexes,
   };
 
-  document.getElementById('placementMsg').textContent = teamName(team) + ' — 选择要移动的棋子';
+  document.getElementById('placementMsg').textContent = teamName(team) + ' — Select piece to move';
   document.getElementById('placementOverlay').classList.add('active');
-  statusEl.textContent = teamName(team) + ' — 选择要移动的棋子';
+  statusEl.textContent = teamName(team) + ' — Select piece to move';
   drawBoard();
 }
 
@@ -2194,9 +2233,9 @@ function startMoveOpponentToGreen(team) {
     validHexes: validPieceHexes,
   };
 
-  document.getElementById('placementMsg').textContent = teamName(team) + ' — 选择对手要移动的棋子';
+  document.getElementById('placementMsg').textContent = teamName(team) + ' — Select opponent piece to move';
   document.getElementById('placementOverlay').classList.add('active');
-  statusEl.textContent = teamName(team) + ' — 选择对手棋子移至绿色点位';
+  statusEl.textContent = teamName(team) + ' — Move opponent piece to green spot';
   drawBoard();
 }
 
@@ -2211,7 +2250,7 @@ function startRedCardSelect(team) {
     team,
     validHexes,
   };
-  statusEl.textContent = '选择 ' + teamName(team) + ' 一名球员罚下（非守门员）';
+  statusEl.textContent = 'Select a ' + teamName(team) + ' player to send off (not GK)';
   drawBoard();
 }
 
@@ -2223,10 +2262,10 @@ function applyYellowCard(team) {
   target.yellowCards++;
   if (target.yellowCards >= 2) {
     target.removed = true;
-    statusEl.textContent = teamName(team) + ' 球员两黄变红被罚下！';
+    statusEl.textContent = teamName(team) + ' player sent off — second yellow!';
     playNegative();
   } else {
-    statusEl.textContent = teamName(team) + ' 球员获得黄牌警告';
+    statusEl.textContent = teamName(team) + ' player receives a yellow card';
   }
 }
 
@@ -2240,7 +2279,7 @@ function startTwoPlayersMove(team, steps) {
     steps,
     validHexes: validPieceHexes,
   };
-  statusEl.textContent = teamName(team) + ' — 选择第一个球员移动' + steps + '步';
+  statusEl.textContent = teamName(team) + ' — Select first player to move ' + steps + ' steps';
   drawBoard();
 }
 
@@ -2253,10 +2292,10 @@ function resolveOwnGoalCheck(team) {
     score[opponent]++;
     updateScore();
     playGoal();
-    statusEl.textContent = '乌龙球！掷出 ' + val + '，' + teamName(team) + ' 自摆乌龙！';
+    statusEl.textContent = 'Own goal! Rolled ' + val + ', ' + teamName(team) + ' scores an own goal!';
     setTimeout(() => { endTurn(); drawBoard(); }, 2000);
   } else {
-    statusEl.textContent = '掷出 ' + val + '，未触发乌龙球';
+    statusEl.textContent = 'Rolled ' + val + ', no own goal';
     setTimeout(() => { endTurn(); drawBoard(); }, 1500);
   }
 }
@@ -2264,10 +2303,10 @@ function resolveOwnGoalCheck(team) {
 function resolveVarRedCard(team) {
   const val = Math.floor(Math.random() * 6) + 1;
   if (val === 6) {
-    statusEl.textContent = 'VAR判定！掷出6，对手一人被罚下！';
+    statusEl.textContent = 'VAR review! Rolled 6 — opponent player sent off!';
     setTimeout(() => startRedCardSelect(otherTeam(team)), 1500);
   } else {
-    statusEl.textContent = 'VAR判定：掷出 ' + val + '，未触发红牌';
+    statusEl.textContent = 'VAR review: Rolled ' + val + ', no red card';
     setTimeout(() => { endTurn(); drawBoard(); }, 1500);
   }
 }
@@ -2278,10 +2317,10 @@ function resolveGoalkeeperGoal(team) {
     score[team]++;
     updateScore();
     playGoal();
-    statusEl.textContent = '门将进球！掷出6，' + teamName(team) + ' 得分！';
+    statusEl.textContent = 'Goalkeeper scores! Rolled 6, ' + teamName(team) + ' scores!';
     setTimeout(() => { endTurn(); drawBoard(); }, 2000);
   } else {
-    statusEl.textContent = '掷出 ' + val + '，门将未能进球';
+    statusEl.textContent = 'Rolled ' + val + ', goalkeeper misses';
     setTimeout(() => { endTurn(); drawBoard(); }, 1500);
   }
 }
@@ -2293,11 +2332,11 @@ function resolveVarCancelGoal(team) {
     score[opponent]--;
     updateScore();
     playWhistle();
-    statusEl.textContent = 'VAR取消进球！掷出6，' + teamName(opponent) + ' 被吹掉一个进球！';
+    statusEl.textContent = 'VAR disallows goal! Rolled 6, ' + teamName(opponent) + ' loses a goal!';
     setTimeout(() => { endTurn(); drawBoard(); }, 2000);
   } else {
-    const reason = val !== 6 ? '掷出 ' + val : '对手尚未进球';
-    statusEl.textContent = 'VAR判定：' + reason + '，未取消进球';
+    const reason = val !== 6 ? 'Rolled ' + val : 'Opponent has no goals';
+    statusEl.textContent = 'VAR review: ' + reason + ', goal stands';
     setTimeout(() => { endTurn(); drawBoard(); }, 1500);
   }
 }
@@ -2305,10 +2344,10 @@ function resolveVarCancelGoal(team) {
 function resolveVarPenalty(team) {
   const val = Math.floor(Math.random() * 6) + 1;
   if (val > 4) {
-    statusEl.textContent = 'VAR判罚！掷出 ' + val + '，获得点球！';
+    statusEl.textContent = 'VAR awards penalty! Rolled ' + val;
     setTimeout(() => startPenalty(team), 1500);
   } else {
-    statusEl.textContent = '掷出 ' + val + '，未获得点球';
+    statusEl.textContent = 'Rolled ' + val + ', no penalty awarded';
     setTimeout(() => { endTurn(); drawBoard(); }, 1500);
   }
 }
@@ -2316,10 +2355,10 @@ function resolveVarPenalty(team) {
 function resolveIndirectFreeKick(team) {
   const val = Math.floor(Math.random() * 6) + 1;
   if (val > 4) {
-    statusEl.textContent = '间接任意球：掷出 ' + val + '，可以走 ' + val + ' 步！';
+    statusEl.textContent = 'Indirect free kick: Rolled ' + val + ', move ' + val + ' steps!';
     setTimeout(() => startEffectMoveOwn(team, val), 1000);
   } else {
-    statusEl.textContent = '间接任意球：掷出 ' + val + '，未达标';
+    statusEl.textContent = 'Indirect free kick: Rolled ' + val + ', not enough';
     setTimeout(() => { endTurn(); drawBoard(); }, 1500);
   }
 }
@@ -2331,7 +2370,7 @@ let penaltyCallback = null;
 function startPenalty(team) {
   penaltyTeam = team;
   const overlay = document.getElementById('penaltyOverlay');
-  document.getElementById('penaltyInfo').textContent = teamName(team) + ' 主罚点球';
+  document.getElementById('penaltyInfo').textContent = teamName(team) + ' takes the penalty';
   document.getElementById('penaltyAtkDice').textContent = '?';
   document.getElementById('penaltyDefDice').textContent = '?';
   document.getElementById('penaltyResult').textContent = '';
@@ -2362,10 +2401,10 @@ function rollPenalty() {
         score[penaltyTeam]++;
         updateScore();
         playGoal();
-        resultEl.textContent = '⚽ 进球！' + atkVal + ' ≥ ' + defVal;
+        resultEl.textContent = '⚽ GOAL! ' + atkVal + ' ≥ ' + defVal;
         resultEl.style.color = '#4caf50';
       } else {
-        resultEl.textContent = '扑救成功！' + atkVal + ' < ' + defVal;
+        resultEl.textContent = 'Saved! ' + atkVal + ' < ' + defVal;
         resultEl.style.color = '#ef5350';
         playNegative();
       }

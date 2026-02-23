@@ -1,0 +1,22 @@
+LICENSE_VIBE
+Personal Project License: Individual Creation & AI-Collaborative Works (Non-Commercial)
+
+1. Scope of Application
+This license applies to all games, code, designs, and documentation created by the author through the "Vibe Coding" methodology, utilizing AI collaborative tools (e.g., Gemini, Claude, etc.).
+
+2. Nature of Project
+This project is an experimental work driven by personal interest, designed to explore the creative boundaries between human intuition and Artificial Intelligence.
+
+3. Usage Restrictions (Personal Use Only)
+* Limited Use: This project is strictly for personal, household, and non-commercial community exchange (e.g., family education, personal hobby).
+* Commercial Prohibition: Any form of commercialization is strictly prohibited. This includes, but is not limited to: direct sale, paid subscriptions, distribution with commercial advertisements, or use as material for paid educational courses.
+
+4. Copyright & Attribution
+* Mechanics & Inspiration: If the logic or mechanics of this project are inspired by existing commercial products, the intellectual property of the original concepts remains with the original creators. This project serves as a personal tribute and localization practice.
+* Originality: Specific implementations, prompt engineering, and visual layouts are co-created by the author and AI collaborators.
+
+5. Open Exchange
+Others are welcome to exchange ideas or suggest logical improvements for non-commercial purposes, provided this license remains attached to the project.
+
+6. Disclaimer (As-Is)
+This project is provided "as-is" without warranty of any kind. The author assumes no liability for any legal or technical issues arising from the use or modification of this project.
